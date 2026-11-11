@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.4.8 — rounded clock card fix
+
+- Fixed squared-off black corners appearing behind rounded clock cards with light custom colors (especially Ivory).
+- Clipped the entire flip-card drawing to its intended 50-unit rounded rectangle in both the native Cairo/Pango renderer and the GNOME Shell renderer.
+- Preserved the original split-card gradient, digit colors, wallpaper options and flip animation.
+- Added a pixel-level regression test for all four corners during static and mid-flip frames, plus a GJS drawing-contract check.
+- Regenerated and committed all six color-theme README examples from the corrected renderer.
+
+**Release candidate:** verify the appearance and flip animation on a real Ubuntu 26.04 / GNOME 50 Wayland desktop before publishing to GNOME Extensions.
+
+
 ## 0.4.7 — personalized clock-face colors
 
 - Independent flip-card background and digit/AM-PM text colors in the GTK app and GNOME Preferences, without removing the full-screen photo background.
