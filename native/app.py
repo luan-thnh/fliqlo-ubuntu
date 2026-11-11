@@ -45,11 +45,30 @@ def clock_now():
     return datetime.now()
 
 
-def load_backdrop(config):
+MAX_BACKDROP_IMAGES = 20
+
+
+def backdrop_images(config):
+    """Keep the legacy single-image setting working after upgrades."""
+    library = list(config.get_strv('background-image-uris'))[:MAX_BACKDROP_IMAGES]
+    legacy = config.get_string('background-image-uri')
+    return library if library else ([legacy] if legacy else [])
+
+
+def backdrop_uri(config, index=None):
+    library = backdrop_images(config)
+    if not library:
+        return ''
+    if index is None:
+        index = config.get_int('background-selected-index')
+    return library[max(0, min(index, len(library) - 1))]
+
+
+def load_backdrop(config, index=None):
     """Decode only local, reasonably sized images; never query the network."""
     if config.get_int('background-mode') != 2:
         return None
-    uri = config.get_string('background-image-uri')
+    uri = backdrop_uri(config, index)
     if not uri.startswith('file:///'):
         return None
     path = Gio.File.new_for_uri(uri).get_path()
@@ -79,7 +98,10 @@ class Clock(Gtk.DrawingArea):
         super().__init__()
         self.config = config
         self.current = clock_parts(clock_now(), config.get_int('time-format'))
-        self.background_pixbuf = load_backdrop(config)
+        self.image_index = max(0, min(config.get_int('background-selected-index'),
+                                      max(0, len(backdrop_images(config)) - 1)))
+        self.background_pixbuf = load_backdrop(config, self.image_index)
+        self.next_slide = GLib.get_monotonic_time() + config.get_int('background-slideshow-seconds') * 1000000
         self.previous = None
         self.started = 0
         self.progress = 1
@@ -89,13 +111,19 @@ class Clock(Gtk.DrawingArea):
         self.changed = config.connect('changed', self.on_setting)
         self.connect('destroy', self.cleanup)
 
-    def on_setting(self, *_args):
+    def on_setting(self, _settings, key):
         if self.animation:
             self.remove_tick_callback(self.animation)
             self.animation = 0
         self.progress = 1
         self.current = clock_parts(clock_now(), self.config.get_int('time-format'))
-        self.background_pixbuf = load_backdrop(self.config)
+        if key in ('background-mode', 'background-image-uri', 'background-image-uris',
+                   'background-selected-index'):
+            self.image_index = max(0, min(self.config.get_int('background-selected-index'),
+                                         max(0, len(backdrop_images(self.config)) - 1)))
+            self.background_pixbuf = load_backdrop(self.config, self.image_index)
+        if key.startswith('background-'):
+            self.next_slide = GLib.get_monotonic_time() + self.config.get_int('background-slideshow-seconds') * 1000000
         self.previous = None
         self.queue_draw()
 
@@ -106,6 +134,14 @@ class Clock(Gtk.DrawingArea):
         self.config.disconnect(self.changed)
 
     def tick_clock(self):
+        images = backdrop_images(self.config) if self.config.get_int('background-mode') == 2 else []
+        now = GLib.get_monotonic_time()
+        if (len(images) > 1 and self.config.get_boolean('background-slideshow')
+                and now >= self.next_slide):
+            self.image_index = (self.image_index + 1) % len(images)
+            self.background_pixbuf = load_backdrop(self.config, self.image_index)
+            self.next_slide = now + self.config.get_int('background-slideshow-seconds') * 1000000
+            self.queue_draw()
         current = clock_parts(clock_now(), self.config.get_int('time-format'))
         if current != self.current:
             self.previous, self.current = self.current, current
@@ -345,22 +381,45 @@ class Preferences(Gtk.ApplicationWindow):
         self.controls['background-color'] = color
 
         image_buttons = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
-        image_buttons.pack_start(self._action('Choose image…', self.choose_backdrop), False, False, 0)
-        image_buttons.pack_start(self._action('Clear', self.clear_backdrop), False, False, 0)
+        image_buttons.pack_start(self._action('Add photos…', self.choose_backdrop), False, False, 0)
+        image_buttons.pack_start(self._action('Clear all', self.clear_backdrop), False, False, 0)
         fit = Gtk.ComboBoxText()
         for name in ('Cover', 'Contain', 'Stretch', 'Center'):
             fit.append_text(name)
         fit.set_size_request(140, -1)
         self.config.bind('background-fit', fit, 'active', Gio.SettingsBindFlags.DEFAULT)
         self.controls['background-fit'] = fit
+        slide = self._switch('background-slideshow')
+        interval = Gtk.SpinButton.new_with_range(10, 3600, 10)
+        interval.set_numeric(True)
+        self.config.bind('background-slideshow-seconds', interval.get_adjustment(),
+                         'value', Gio.SettingsBindFlags.DEFAULT)
+        self.controls['background-slideshow-seconds'] = interval
         body.pack_start(self._section('Background', [
             self._row('Backdrop', 'None keeps the classic black screensaver.', mode),
             self._row('Color', 'Choose a solid color behind the clock.', color),
-            self._row('Image', 'Select a local PNG, JPEG, or WebP image.', image_buttons),
-            self._row('Image opacity', 'Blend the image with the black base.', self._scale('background-opacity', 0, 100)),
-            self._row('Image fit', 'How your image fills the screen.', fit),
+            self._row('My photos', 'Add up to 20 local PNG, JPEG, or WebP images.', image_buttons),
+            self._row('Auto-change photos', 'Play a slideshow while the clock is visible.', slide),
+            self._row('Change every (seconds)', '10 seconds to 1 hour.', interval),
+            self._row('Image opacity', 'Blend each photo with black.', self._scale('background-opacity', 0, 100)),
+            self._row('Image fit', 'Cover, contain, stretch or center.', fit),
             self._row('Dark overlay', 'Improve clock contrast on bright images.', self._scale('background-dim', 0, 90)),
-        ], 'Your backdrop is kept locally. No image is uploaded.'), False, False, 0)
+        ], 'Your photo library stays on this computer. No uploads.'), False, False, 0)
+
+        self.gallery = Gtk.FlowBox()
+        self.gallery.set_selection_mode(Gtk.SelectionMode.NONE)
+        self.gallery.set_max_children_per_line(3)
+        self.gallery.set_min_children_per_line(2)
+        self.gallery.set_row_spacing(10)
+        self.gallery.set_column_spacing(10)
+        self._gallery_cache = {}
+        self.gallery_summary = Gtk.Label(xalign=0)
+        self.gallery_summary.get_style_context().add_class('dim-label')
+        body.pack_start(self._section('My photo library', [self.gallery_summary, self.gallery],
+            'Select the active image or remove one. Slideshow follows this order.'), False, False, 0)
+        for key in ('background-image-uris', 'background-selected-index', 'background-image-uri'):
+            self.config.connect('changed::' + key, lambda *_: self._refresh_gallery())
+        self._refresh_gallery()
 
         fonts = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         fonts.pack_start(self._action('Import…', self.import_font), False, False, 0)
@@ -440,31 +499,111 @@ class Preferences(Gtk.ApplicationWindow):
             display = window.get_display()
             window.get_window().set_cursor(Gdk.Cursor.new_for_display(display, Gdk.CursorType.BLANK_CURSOR))
 
+    def _refresh_gallery(self):
+        if not hasattr(self, 'gallery'):
+            return
+        images = backdrop_images(self.config)
+        selected = self.config.get_int('background-selected-index')
+        for widget in self.gallery.get_children():
+            self.gallery.remove(widget)
+        self.gallery_summary.set_text(
+            '%d of %d photos · %s' % (len(images), MAX_BACKDROP_IMAGES,
+                'Select an image to make it active' if images else 'No photos added yet'))
+        for index, uri in enumerate(images):
+            tile = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=5)
+            path = Gio.File.new_for_uri(uri).get_path() if uri.startswith('file:///') else None
+            thumb = self._gallery_cache.get(uri)
+            if thumb is None and path:
+                try:
+                    thumb = GdkPixbuf.Pixbuf.new_from_file_at_scale(path, 158, 96, True)
+                    self._gallery_cache[uri] = thumb
+                except (OSError, GLib.Error):
+                    pass
+            picture = Gtk.Image.new_from_pixbuf(thumb) if thumb else Gtk.Image.new_from_icon_name(
+                'image-missing', Gtk.IconSize.DIALOG)
+            tile.pack_start(picture, False, False, 0)
+            title = Gtk.Label(label=(Path(path).name if path else 'Invalid image')[:23])
+            title.set_ellipsize(3)
+            tile.pack_start(title, False, False, 0)
+            actions = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=4)
+            select = self._action('Active ✓' if index == selected else 'Use', lambda _b, n=index: self._select_backdrop(n))
+            if index == selected:
+                select.get_style_context().add_class('suggested-action')
+            actions.pack_start(select, True, True, 0)
+            actions.pack_start(self._action('Remove', lambda _b, n=index: self._remove_backdrop(n)), True, True, 0)
+            tile.pack_start(actions, False, False, 0)
+            self.gallery.add(tile)
+        self.gallery.show_all()
+
+    def _select_backdrop(self, index):
+        images = backdrop_images(self.config)
+        if 0 <= index < len(images):
+            self.config.set_int('background-selected-index', index)
+            self.config.set_string('background-image-uri', images[index])
+            self.config.set_int('background-mode', 2)
+
+    def _remove_backdrop(self, index):
+        images = backdrop_images(self.config)
+        if not 0 <= index < len(images):
+            return
+        images.pop(index)
+        current = self.config.get_int('background-selected-index')
+        if index < current:
+            current -= 1
+        current = min(current, max(0, len(images) - 1))
+        self.config.set_strv('background-image-uris', images)
+        self.config.set_int('background-selected-index', current)
+        self.config.set_string('background-image-uri', images[current] if images else '')
+        if not images:
+            self.config.set_int('background-mode', 0)
+
     def choose_backdrop(self, _button):
-        chooser = Gtk.FileChooserDialog(title='Choose a background image', parent=self,
+        chooser = Gtk.FileChooserDialog(title='Add background photos', parent=self,
             action=Gtk.FileChooserAction.OPEN)
-        chooser.add_buttons('Cancel', Gtk.ResponseType.CANCEL, 'Use Image', Gtk.ResponseType.OK)
+        chooser.add_buttons('Cancel', Gtk.ResponseType.CANCEL, 'Add photos', Gtk.ResponseType.OK)
+        chooser.set_select_multiple(True)
         files = Gtk.FileFilter()
         files.set_name('Images (PNG, JPEG, WebP)')
         for mime in ('image/png', 'image/jpeg', 'image/webp'):
             files.add_mime_type(mime)
         chooser.add_filter(files)
-        selected = chooser.get_filename() if chooser.run() == Gtk.ResponseType.OK else None
+        selected = chooser.get_filenames() if chooser.run() == Gtk.ResponseType.OK else []
         chooser.destroy()
         if not selected:
             return
-        path = Path(selected)
-        try:
-            if path.suffix.lower() not in ('.png', '.jpg', '.jpeg', '.webp'):
-                raise ValueError('Choose a PNG, JPEG or WebP image.')
-            if path.stat().st_size > 16 * 1024 * 1024:
-                raise ValueError('Image exceeds the 16 MiB limit.')
-            self.config.set_string('background-image-uri', Gio.File.new_for_path(str(path)).get_uri())
+        images = backdrop_images(self.config)
+        rejected = 0
+        for name in selected:
+            if len(images) >= MAX_BACKDROP_IMAGES:
+                rejected += 1
+                continue
+            path = Path(name)
+            try:
+                if path.suffix.lower() not in ('.png', '.jpg', '.jpeg', '.webp'):
+                    raise ValueError('Unsupported format')
+                if path.stat().st_size > 16 * 1024 * 1024:
+                    raise ValueError('Image exceeds 16 MiB')
+                # Decode a small thumbnail before adding, to reject invalid images.
+                thumb = GdkPixbuf.Pixbuf.new_from_file_at_scale(str(path), 158, 96, True)
+                uri = Gio.File.new_for_path(str(path)).get_uri()
+                if uri not in images:
+                    self._gallery_cache[uri] = thumb
+                    images.append(uri)
+            except (OSError, ValueError, GLib.Error):
+                rejected += 1
+        if images:
+            selected_index = len(images) - 1
+            self.config.set_strv('background-image-uris', images)
+            self.config.set_int('background-selected-index', selected_index)
+            self.config.set_string('background-image-uri', images[selected_index])
             self.config.set_int('background-mode', 2)
-        except (OSError, ValueError) as error:
-            self.status.set_text('Unable to select background: ' + str(error))
+        if rejected:
+            self.status.set_text('%d images skipped (invalid, over 16 MiB, or library full).' % rejected)
 
     def clear_backdrop(self, _button):
+        self._gallery_cache.clear()
+        self.config.set_strv('background-image-uris', [])
+        self.config.set_int('background-selected-index', 0)
         self.config.set_string('background-image-uri', '')
         self.config.set_int('background-mode', 0)
 

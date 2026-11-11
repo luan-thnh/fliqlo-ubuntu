@@ -50,6 +50,16 @@ def check():
         control['background-fit'].set_active(1)
         assert config.get_int('background-fit') == 1
         config.set_int('background-mode', 0)
+        assert {'background-slideshow', 'background-slideshow-seconds'} <= control.keys()
+        control['background-slideshow'].set_active(True)
+        assert config.get_boolean('background-slideshow')
+        config.set_strv('background-image-uris', ['file:///tmp/a.png', 'file:///tmp/b.png'])
+        config.set_int('background-selected-index', 1)
+        assert len(window.gallery.get_children()) == 2
+        window._remove_backdrop(0)
+        assert config.get_strv('background-image-uris') == ['file:///tmp/b.png']
+        window.clear_backdrop(None)
+        assert not config.get_strv('background-image-uris')
         config.set_int('brightness', 50)
         config.set_int('brightness', 100)
         window.preview(None)

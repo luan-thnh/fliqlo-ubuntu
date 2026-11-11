@@ -7,6 +7,10 @@
     <key name="background-mode" type="i"><default>0</default><range min="0" max="2"/><summary>Backdrop mode: 0 black, 1 solid color, 2 local image</summary></key>
     <key name="background-color" type="s"><default>'#161b26'</default><summary>Solid backdrop RGB color</summary></key>
     <key name="background-image-uri" type="s"><default>''</default><summary>Local file URI of an image owned by the user</summary></key>
+    <key name="background-image-uris" type="as"><default>[]</default><summary>Selected library of local background image URIs (maximum 20)</summary></key>
+    <key name="background-selected-index" type="i"><default>0</default><range min="0" max="19"/><summary>Selected photo in custom background library</summary></key>
+    <key name="background-slideshow" type="b"><default>false</default><summary>Cycle through library photos while the clock is shown</summary></key>
+    <key name="background-slideshow-seconds" type="i"><default>60</default><range min="10" max="3600"/><summary>Seconds between background photo changes</summary></key>
     <key name="background-opacity" type="i"><default>85</default><range min="0" max="100"/><summary>Image opacity percentage</summary></key>
     <key name="background-fit" type="i"><default>0</default><range min="0" max="3"/><summary>Image fit: cover, contain, stretch or center</summary></key>
     <key name="background-dim" type="i"><default>15</default><range min="0" max="90"/><summary>Backdrop dark overlay percentage</summary></key>
