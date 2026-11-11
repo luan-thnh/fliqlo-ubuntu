@@ -40,6 +40,16 @@ def check():
         window.pages.set_visible_child_name('appearance')
         clock = next(w for w in widgets(window) if isinstance(w, Clock))
         assert clock.current[0].isdigit()
+        assert {'background-mode', 'background-color', 'background-opacity',
+                'background-fit', 'background-dim'} <= control.keys()
+        control['background-mode'].set_active(1)
+        assert config.get_int('background-mode') == 1
+        config.set_string('background-color', '#264466')
+        control['background-opacity'].set_value(70)
+        assert config.get_int('background-opacity') == 70
+        control['background-fit'].set_active(1)
+        assert config.get_int('background-fit') == 1
+        config.set_int('background-mode', 0)
         config.set_int('brightness', 50)
         config.set_int('brightness', 100)
         window.preview(None)

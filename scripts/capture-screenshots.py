@@ -35,6 +35,7 @@ def main():
     def activate(app):
         theme = Gtk.Settings.get_default()
         theme.set_property("gtk-application-prefer-dark-theme", CASE_DARK_ONLY)
+        os.environ['FLIQLO_DEMO_TIME'] = '09:41'
         window = Preferences(app, settings())
         window.set_size_request(680, 760)
         window.resize(680, 760)

@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.4.4 — customizable backgrounds
+
+- Added local PNG/JPEG/WebP backgrounds, solid colors, opacity, fit modes, and dark overlay in GTK and GNOME Preferences.
+- Kept classic black as the default with local-only image references; limit inputs to 16 MiB.
+- Synced documentation screenshots to a fixed 9:41 AM while preserving the actual clock at runtime.
+- Updated tests and GitHub Actions screenshot workflow.
+
+**GNOME Shell image loading still needs manual validation on a physical GNOME 50/Wayland desktop.**
+
+
 ## 0.4.3 — documentation sync release
 
 - Updated all three clock-format preview images to the same sample time: **9:41 AM / 9:41 / 09:41**.

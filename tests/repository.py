@@ -48,6 +48,16 @@ class RepositoryTests(unittest.TestCase):
         self.assertIn('gh release delete', (ROOT / '.github/workflows/build.yml').read_text())
         self.assertIn('clock-format-24h-padded.png', (ROOT / 'README.md').read_text())
         self.assertIn('style.css', (ROOT / 'scripts/build-deb.sh').read_text())
+        native = (ROOT / 'native/app.py').read_text()
+        shell = (ROOT / 'extension/extension.js').read_text()
+        prefs = (ROOT / 'extension/prefs.js').read_text()
+        for key in ('background-mode', 'background-color', 'background-image-uri',
+                    'background-opacity', 'background-fit', 'background-dim'):
+            self.assertIn(key, native)
+            self.assertIn(key, prefs)
+            self.assertIn(key, (ROOT / 'extension/schemas/org.gnome.shell.extensions.fliqlo-ubuntu.gschema.xml').read_text())
+        self.assertIn('_addBackdrop', shell)
+        self.assertIn('FLIQLO_DEMO_TIME', (ROOT / 'scripts/capture-screenshots.py').read_text())
 
 if __name__ == '__main__':
     unittest.main()

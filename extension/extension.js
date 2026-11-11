@@ -3,6 +3,7 @@ import Pango from 'gi://Pango';
 import PangoCairo from 'gi://PangoCairo';
 import Clutter from 'gi://Clutter';
 import GLib from 'gi://GLib';
+import Gio from 'gi://Gio';
 import Shell from 'gi://Shell';
 import St from 'gi://St';
 import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
@@ -56,6 +57,46 @@ export default class FliqloExtension extends Extension {
         }
     }
 
+    _addBackdrop(monitor, mode) {
+        if (mode === 0) return;
+        const position = {x: monitor.x, y: monitor.y, width: monitor.width, height: monitor.height};
+        const dim = Math.max(0, Math.min(90, this._settings.get_int('background-dim')));
+
+        if (mode === 1) {
+            const color = this._settings.get_string('background-color');
+            if (/^#[0-9a-fA-F]{6}$/.test(color))
+                this._root.add_child(new St.Widget({...position, style: `background-color: ${color};`}));
+        } else if (mode === 2) {
+            const uri = this._settings.get_string('background-image-uri');
+            // Only well-formed local image file URIs are permitted in Shell CSS.
+            if (/^file:\/\/\/[A-Za-z0-9._~%/-]+$/i.test(uri) &&
+                /\.(png|jpe?g|webp)$/i.test(uri)) {
+                let permitted = false;
+                try {
+                    const file = Gio.File.new_for_uri(uri);
+                    const info = file.query_info('standard::size,standard::type',
+                        Gio.FileQueryInfoFlags.NONE, null);
+                    permitted = info.get_file_type() === Gio.FileType.REGULAR &&
+                        info.get_size() <= 16 * 1024 * 1024;
+                } catch (e) {
+                    console.warn('Fliqlo Ubuntu: cannot read background image', e);
+                }
+                if (permitted) {
+                    const sizing = ['cover', 'contain', '100% 100%', 'auto'][
+                        Math.max(0, Math.min(3, this._settings.get_int('background-fit')))];
+                    const layer = new St.Widget({...position,
+                        opacity: Math.round(Math.max(0, Math.min(100,
+                            this._settings.get_int('background-opacity'))) * 255 / 100),
+                        style: `background-image: url("${uri}"); background-size: ${sizing}; background-repeat: no-repeat; background-position: center;`});
+                    this._root.add_child(layer);
+                }
+            }
+        }
+        if (dim > 0)
+            this._root.add_child(new St.Widget({...position,
+                style: `background-color: rgba(0,0,0,${dim / 100});`}));
+    }
+
     _present() {
         this._root = new St.Widget({reactive: true, can_focus: true,
             layout_manager: new Clutter.FixedLayout(),
@@ -63,11 +104,13 @@ export default class FliqloExtension extends Extension {
             width: global.stage.width, height: global.stage.height});
         Main.layoutManager.addTopChrome(this._root, {trackFullscreen: false});
         this._areas = [];
+        const backdropMode = this._settings.get_int('background-mode');
         const options = {
             scale: this._settings.get_int('scale'),
             brightness: this._settings.get_int('brightness'),
             background: this._settings.get_boolean('background'),
             font: this._settings.get_string('font-family'),
+            transparentBackdrop: backdropMode !== 0,
         };
         this._current = parts(new Date(), this._settings.get_int('time-format'));
         this._previous = null;
@@ -75,6 +118,7 @@ export default class FliqloExtension extends Extension {
         for (const monitor of Main.layoutManager.monitors) {
             if (!this._settings.get_boolean('multiple-displays') &&
                 monitor.index !== Main.layoutManager.primaryIndex) continue;
+            this._addBackdrop(monitor, backdropMode);
             const area = new St.DrawingArea({x: monitor.x, y: monitor.y,
                 width: monitor.width, height: monitor.height});
             area.connect('repaint', () => {
