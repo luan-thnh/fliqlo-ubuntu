@@ -10,6 +10,8 @@ on:
       - 'native/render.py'
       - 'native/model.py'
       - 'native/style.css'
+      - 'extension/prefs.js'
+      - 'extension/extension.js'
       - 'extension/schemas/org.gnome.shell.extensions.fliqlo-ubuntu.gschema.xml'
       - 'VERSION'
       - '.github/workflows/screenshots.yml'

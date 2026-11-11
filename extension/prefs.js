@@ -168,8 +168,8 @@ export default class FliqloPreferences extends ExtensionPreferences {
                 const row = new Adw.ActionRow({
                     title: name,
                     subtitle: index === selected ? 'Selected background' : 'Available background',
-                    icon_name: 'image-x-generic-symbolic',
                 });
+                row.add_prefix(new Gtk.Image({icon_name: 'image-x-generic-symbolic'}));
                 const select = new Gtk.Button({
                     label: index === selected ? 'Selected ✓' : 'Use',
                     valign: Gtk.Align.CENTER,

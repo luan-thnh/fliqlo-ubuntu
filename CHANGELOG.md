@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.4.6 — multi-photo custom backgrounds
+
+- Added a local photo library (up to 20 images) with multiple-file import, preview thumbnails, Use/Remove controls, and Clear all.
+- Added optional photo slideshow (10–3600 seconds per image) in both GTK preview and GNOME Shell screensaver without restarting the clock.
+- Migrated legacy single-image settings automatically; files stay local and are never uploaded or deleted.
+- Updated screenshots to show a library of original temporary background examples.
+
+**GNOME Shell wallpaper playback needs validation on a real GNOME 50/Wayland desktop.**
+
+
 ## 0.4.5 — background rendering verification
 
 - Added image and color backdrop rendering tests against the native Cairo renderer.
