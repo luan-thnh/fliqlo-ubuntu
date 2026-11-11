@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.4.5 — background rendering verification
+
+- Added image and color backdrop rendering tests against the native Cairo renderer.
+- Added simulated GNOME Shell lifecycle checks for background layering and local image opacity.
+- Added a Background settings screenshot, while keeping README examples fixed at 9:41 AM.
+- No new configuration keys; feature remains compatible with v0.4.4 settings.
+
+**Test the image picker and wallpapers on a physical GNOME 50 / Wayland machine before public GNOME Extensions submission.**
+
+
 ## 0.4.4 — customizable backgrounds
 
 - Added local PNG/JPEG/WebP backgrounds, solid colors, opacity, fit modes, and dark overlay in GTK and GNOME Preferences.

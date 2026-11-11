@@ -1,11 +1,13 @@
 import sys
 import unittest
 from datetime import datetime
+from tempfile import TemporaryDirectory
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'native'))
 from model import clock_parts, geometry, digit_indent, ease, FLIP_SECONDS
 from render import paint
 import cairo
+from gi.repository import GdkPixbuf
 
 
 class ClockTests(unittest.TestCase):
@@ -30,6 +32,34 @@ class ClockTests(unittest.TestCase):
         self.assertEqual(FLIP_SECONDS, .330)
         self.assertEqual([digit_indent(v) for v in ('1', '11', '01', '21', '12')], [-7.5, 12, 24, 24, 0])
         self.assertAlmostEqual(ease(.5), 1 - ease(.5, True), places=6)
+
+    def test_color_and_local_image_backdrop(self):
+        base = dict(scale=100, brightness=100, background=True, font='DejaVu Sans')
+        canvas = cairo.ImageSurface(cairo.FORMAT_ARGB32, 640, 360)
+        options = dict(base, background_mode=1, background_color='#f03050',
+                       background_dim=0)
+        paint(cairo.Context(canvas), 640, 360, ('9', '41', 'AM'), None, 1, options)
+        canvas.flush()
+        pixel = canvas.get_data()
+        self.assertGreater(pixel[2], 180)  # RGB red, little-endian ARGB32
+        self.assertLess(pixel[1], 100)
+
+        with TemporaryDirectory() as folder:
+            source = cairo.ImageSurface(cairo.FORMAT_ARGB32, 40, 40)
+            ctx = cairo.Context(source)
+            ctx.set_source_rgb(0.05, 0.65, 0.15)
+            ctx.paint()
+            filename = Path(folder) / 'sample.png'
+            source.write_to_png(str(filename))
+            pixbuf = GdkPixbuf.Pixbuf.new_from_file(str(filename))
+            options = dict(base, background_mode=2, background_pixbuf=pixbuf,
+                           background_fit=0, background_opacity=100, background_dim=0)
+            canvas = cairo.ImageSurface(cairo.FORMAT_ARGB32, 640, 360)
+            paint(cairo.Context(canvas), 640, 360, ('9', '41', 'AM'), None, 1, options)
+            canvas.flush()
+            pixel = canvas.get_data()
+            self.assertGreater(pixel[1], pixel[2])  # Green dominant
+            self.assertGreater(pixel[1], pixel[0])
 
     def test_cairo_animation(self):
         for progress in (0, .25, .5, .75, 1):

@@ -21,6 +21,7 @@ ASSETS = ROOT / "docs" / "assets"
 CASE_DARK_ONLY = os.environ.get("FLIQLO_SCREENSHOT_DARK") == "1"
 CASES = ([("appearance-dark.png", "appearance", True)] if CASE_DARK_ONLY else [
     ("appearance-light.png", "appearance", False),
+    ("appearance-background.png", "appearance", False),
     ("screensaver-light.png", "screensaver", False),
 ])
 
@@ -51,6 +52,15 @@ def main():
             theme.set_property("gtk-application-prefer-dark-theme", dark)
             theme.set_property("gtk-theme-name", "Adwaita-dark" if dark else "Adwaita")
             window.pages.set_visible_child_name(page)
+            if page == 'appearance':
+                scroller = window.pages.get_child_by_name('appearance')
+                adjustment = scroller.get_vadjustment()
+                # Scroll down just for the Background settings screenshot.
+                if filename == 'appearance-background.png':
+                    GLib.idle_add(lambda: adjustment.set_value(
+                        max(0, adjustment.get_upper() - adjustment.get_page_size())) or False)
+                else:
+                    adjustment.set_value(0)
             window.queue_draw()
 
             def snapshot():

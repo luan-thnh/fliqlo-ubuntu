@@ -58,6 +58,8 @@ jobs:
               print(f'{name}: 1920x1080, {bright} bright pixels')
           if len(set(digests)) != len(names):
               raise SystemExit('Clock format images are duplicates')
+          if not (folder / 'appearance-background.png').is_file():
+              raise SystemExit('Missing Background settings screenshot')
           if (folder / 'appearance-dark.png').read_bytes() == (folder / 'appearance-light.png').read_bytes():
               raise SystemExit('Light and dark GTK settings screenshots are identical')
           PY
@@ -66,7 +68,7 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add docs/assets/clock-format-12h.png docs/assets/clock-format-24h-short.png docs/assets/clock-format-24h-padded.png
-          git add docs/assets/appearance-light.png docs/assets/screensaver-light.png docs/assets/appearance-dark.png
+          git add docs/assets/appearance-light.png docs/assets/appearance-background.png docs/assets/screensaver-light.png docs/assets/appearance-dark.png
           if ! git diff --cached --quiet; then
             git commit -m 'docs: add crisp 12h and 24h renderer screenshots'
             git push

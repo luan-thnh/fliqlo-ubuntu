@@ -52,12 +52,22 @@ class Timeline extends Signals {
 }
 const Clutter = {Timeline, FixedLayout: class {}, CursorType: {NONE: 0}, EVENT_STOP: true, EventType: {KEY_PRESS: 1, BUTTON_PRESS: 2, MOTION: 3, TOUCH_BEGIN: 4, SCROLL: 5}};
 const Shell = {ActionMode: {NORMAL: 1}};
+const Gio = {
+    File: {new_for_uri: uri => ({
+        query_info: () => ({
+            get_file_type: () => 1,
+            get_size: () => 30000,
+        }),
+    })},
+    FileQueryInfoFlags: {NONE: 0},
+    FileType: {REGULAR: 1},
+};
 class Extension {getSettings() {return config;}}
 const source = readFileSync(new URL('../extension/extension.js', import.meta.url), 'utf8')
     .replace(/^import .*;\n/gm, '').replace('export default class FliqloExtension', 'class FliqloExtension');
 const quietConsole = {error() {}};
-const Factory = new Function('Clutter', 'GLib', 'Shell', 'St', 'Extension', 'Main', 'idleAllowed', 'parts', 'paint', 'global', 'console', 'Cairo', 'Pango', 'PangoCairo', 'FLIP_MS', `${source}\nreturn FliqloExtension;`);
-const Fliqlo = Factory(Clutter, GLib, Shell, St, Extension, Main, idleAllowed, parts, paint, global, quietConsole, api, api.Pango, api.PangoCairo, FLIP_MS);
+const Factory = new Function('Gio', 'Clutter', 'GLib', 'Shell', 'St', 'Extension', 'Main', 'idleAllowed', 'parts', 'paint', 'global', 'console', 'Cairo', 'Pango', 'PangoCairo', 'FLIP_MS', `${source}\nreturn FliqloExtension;`);
+const Fliqlo = Factory(Gio, Clutter, GLib, Shell, St, Extension, Main, idleAllowed, parts, paint, global, quietConsole, api, api.Pango, api.PangoCairo, FLIP_MS);
 const ext = new Fliqlo();
 ext.enable();
 assert.equal(idleWatches.size, 1, 'Ubuntu child session must arm idle');
@@ -104,6 +114,26 @@ failGrab = false;
 config.values['idle-enabled'] = false; config.emit('changed', 'idle-enabled');
 assert.equal(idleWatches.size, 0);
 config.emit('changed', 'preview-token'); assert.equal(roots.size, 1, 'manual preview works when auto activation is off');
+ext._hide();
+config.values['background-mode'] = 1;
+config.values['background-color'] = '#213b50';
+config.values['background-dim'] = 15;
+config.emit('changed', 'preview-token');
+assert(ext._root.children.some(child => child.style?.includes('#213b50')),
+    'Solid backdrop should be behind the clock');
+assert(ext._root.children.some(child => child.style?.includes('rgba(0,0,0,0.15)')),
+    'Dark overlay should be on top of the backdrop');
+assert.equal(ext._areas.length, 1);
+ext._hide();
+config.values['background-mode'] = 2;
+config.values['background-image-uri'] = 'file:///tmp/demo.png';
+config.values['background-opacity'] = 50;
+config.values['background-fit'] = 0;
+config.emit('changed', 'preview-token');
+assert(ext._root.children.some(child =>
+    child.style?.includes('background-image: url("file:///tmp/demo.png")') &&
+    child.opacity === Math.round(50 * 255 / 100)),
+    'Local image URI and configured alpha should be applied');
 ext.disable();
 assert.equal(roots.size + grabs + timers.size + idleWatches.size, 0);
 assert.equal(config.signals.size + layout.signals.size + session.signals.size, 0);
