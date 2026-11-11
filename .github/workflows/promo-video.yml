@@ -22,12 +22,16 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: true
+      - name: Use cached Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
       - name: Install renderer dependencies
         run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y python3-pil python3-numpy ffmpeg
+          python -m pip install --disable-pip-version-check --quiet "Pillow==11.3.0" "numpy==2.2.6"
+          ffmpeg -version | head -1
       - name: Render film and poster from the actual project screenshots
-        run: /usr/bin/python3 scripts/render-promo-video.py
+        run: python scripts/render-promo-video.py
       - name: Verify media
         run: |
           test -s docs/media/fliqlo-ubuntu-teaser.mp4
