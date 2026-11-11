@@ -1,173 +1,383 @@
 #!/usr/bin/env python3
-"""Fliqlo Ubuntu: deterministic 16s product film from actual project screenshots.
+"""Render the Fliqlo Ubuntu product film with six non-overlapping 1080p scenes.
 
-HTML-timeline-inspired frames, Pillow + FFmpeg. No proprietary Hyperframes assets,
-no API calls, no external footage, no third-party music or packaged fonts.
+Pillow/NumPy + FFmpeg. Deterministic 24 fps timeline. Each scene has its own
+typography zone, so transitions never superimpose two headlines. All artwork
+and ambient audio are generated here; no third-party footage or music.
 """
-import subprocess, wave, shutil
+from __future__ import annotations
+
+from functools import lru_cache
 from pathlib import Path
-from PIL import Image, ImageDraw, ImageFont, ImageOps
+import shutil
+import subprocess
+import wave
+
 import numpy as np
+from PIL import Image, ImageDraw, ImageFont
 
-ROOT=Path(__file__).resolve().parents[1]
-ASSETS=ROOT/'docs'/'assets'; OUT=ROOT/'docs'/'media'
-W,H,FPS,SECONDS=1280,720,24,16
-FONT='/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'
-BOLD='/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'
-FONTS={}
-def f(sz,bold=False):
-    key=(sz,bold)
-    if key not in FONTS:FONTS[key]=ImageFont.truetype(BOLD if bold else FONT,sz)
-    return FONTS[key]
-def s(x):
-    x=max(0,min(1,x));return x*x*(3-2*x)
-def emerge(t,a,b):return s((t-a)/max(.001,b-a))
-def vis(t,a,b,fade=.45):return min(emerge(t,a,a+fade),1-emerge(t,b-fade,b))
-def text(img,st,xy,size=24,color=(238,241,250),alpha=255,bold=False,anchor='la'):
-    if alpha<=0:return
-    ImageDraw.Draw(img,'RGBA').text(xy,st,font=f(size,bold),fill=(*color,int(alpha)),anchor=anchor)
-def box(img,b,r,fill,outline=None,width=1):
-    ImageDraw.Draw(img,'RGBA').rounded_rectangle(tuple(map(int,b)),radius=r,fill=fill,outline=outline,width=width)
-def bg(top,bottom):
-    y=np.linspace(0,1,H)[:,None,None]
-    arr=(np.array(top)[None,None,:]*(1-y)+np.array(bottom)[None,None,:]*y)
-    arr=np.broadcast_to(arr,(H,W,3)).astype('uint8')
-    return Image.fromarray(arr.copy(),'RGB').convert('RGBA')
-BASE=[bg((10,13,21),(11,14,25)),bg((9,11,17),(7,8,14)),
-      bg((16,20,34),(12,14,23)),bg((13,19,29),(9,11,19)),
-      bg((9,12,21),(6,9,17))]
-THEMES=['classic','ocean','rose','ivory','forest','amber']
-PICS={name:Image.open(ASSETS/f'theme-{name}.png').convert('RGB') for name in THEMES}
-SHOTS={name:Image.open(ASSETS/name).convert('RGB') for name in
- ('appearance-clock-face.png','appearance-background.png','appearance-dark.png')}
-ACCENT={'classic':(208,214,238),'ocean':(125,211,247),'rose':(245,160,198),
-        'ivory':(237,220,177),'forest':(133,236,184),'amber':(239,185,105)}
+ROOT = Path(__file__).resolve().parents[1]
+OUT = ROOT / 'docs' / 'media'
+W, H, FPS, SECONDS = 1920, 1080, 24, 20
+BOUNDS = (0.0, 3.2, 6.8, 10.6, 13.9, 17.1, 20.0)
+FONT_REGULAR = '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'
+FONT_BOLD = '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'
+INK, WHITE, MUTED, ACCENT = '#080b12', '#f2f5ff', '#9ca9c0', '#b9c6fa'
+PALETTES = (
+    ('OCEAN', '#163d5d', '#def3ff', '#0d2338'),
+    ('ROSE', '#643149', '#ffe1ef', '#2c1524'),
+    ('IVORY', '#e9ddc9', '#2c384b', '#a7b7c9'),
+)
 
-def logo(img,alpha=255):
-    box(img,(70,43,108,81),8,(33,38,52,int(alpha)))
-    text(img,'9',(79,50),18,alpha=alpha,bold=True)
-    ImageDraw.Draw(img,'RGBA').line((70,62,108,62),fill=(5,8,15,alpha),width=2)
-    text(img,'FLIQLO  /  UBUNTU',(124,61),15,(197,208,239),alpha,bold=True,anchor='lm')
 
-def image_card(img,src,x,y,w,h,alpha=1,r=20):
-    if alpha<=0:return
-    # Preserve real screenshot proportions; no stretched clocks or settings UI.
-    layer=ImageOps.fit(src,(int(w),int(h)),method=Image.Resampling.LANCZOS,
-        centering=(.5,.25 if src.height>src.width else .5)).convert('RGBA')
-    mask=Image.new('L',layer.size,0)
-    ImageDraw.Draw(mask).rounded_rectangle((0,0,w-1,h-1),radius=r,fill=int(alpha*255))
-    layer.putalpha(mask)
-    img.alpha_composite(layer,(int(x),int(y)))
-    ImageDraw.Draw(img,'RGBA').rounded_rectangle((int(x),int(y),int(x+w),int(y+h)),radius=r,
-            outline=(117,132,172,int(120*alpha)),width=2)
+@lru_cache(maxsize=64)
+def font(size, bold=False):
+    return ImageFont.truetype(FONT_BOLD if bold else FONT_REGULAR, int(size))
 
-def scene0(t):
-    im=BASE[0].copy();p=vis(t,0,3.1)
-    logo(im,int(255*emerge(t,.1,.6)))
-    text(im,'A DIFFERENT KIND OF IDLE SCREEN',(76,168),17,(181,192,231),int(255*emerge(t,.35,1)),True)
-    text(im,'TIME.',(72,260+30*(1-emerge(t,.2,1))),110,alpha=int(255*emerge(t,.2,1)),bold=True)
-    text(im,'BEAUTIFULLY',(76,380+26*(1-emerge(t,.55,1.35))),75,(190,199,242),int(255*emerge(t,.55,1.35)),True)
-    text(im,'CONSIDERED.',(77,477+22*(1-emerge(t,.8,1.5))),76,alpha=int(255*emerge(t,.8,1.5)),bold=True)
-    ImageDraw.Draw(im,'RGBA').line((80,630,1200,630),fill=(126,143,201,int(80*p)),width=1)
-    text(im,'THE FLIP-CLOCK FEELING, REIMAGINED FOR GNOME.',(80,666),16,(154,163,193),int(255*p))
-    return im
 
-def scene1(t):
-    im=BASE[1].copy();p=vis(t,3.0,7.15);logo(im,int(255*p))
-    text(im,'01    THE ORIGINAL FEELING',(76,126),15,(173,190,240),int(255*p),True)
-    text(im,'A moment of calm.',(73,190),61,alpha=int(255*emerge(t,3.2,3.95)),bold=True)
-    text(im,'An iconic display. A seamless Ubuntu experience.',(78,242),20,(155,164,184),int(235*p))
-    offset=40*(1-emerge(t,3.12,4.0))
-    image_card(im,PICS['classic'],181,287+offset,918,395,p,22)
-    text(im,'SPLIT-FLAP MOTION   /   NATIVE GTK   /   GNOME WAYLAND',(78,689),13,(156,166,195),int(225*p),True)
-    return im
+def smooth(t):
+    t = max(0.0, min(1.0, t))
+    return t * t * (3 - 2 * t)
 
-def scene2(t):
-    im=BASE[2].copy();p=vis(t,7.0,11.6);logo(im,int(255*p))
-    text(im,'02    YOUR CLOCK, YOUR COLORS',(76,124),15,(177,192,239),int(255*p),True)
-    text(im,'One clock. Endless character.',(70,185),51,alpha=int(255*emerge(t,7.1,7.7)),bold=True)
-    text(im,'Customize cards, digits and every shade in between.',(75,235),19,(160,170,196),int(245*p))
-    names=['ocean','rose','ivory','forest','amber']
-    idx=min(len(names)-1,max(0,int((t-7.1)/.8)))
-    name=names[idx]
-    image_card(im,PICS[name],66,284,817,379,p,18)
-    for j,n in enumerate(names):
-        y=298+j*70;active=j==idx
-        box(im,(913,y,1201,y+58),12,(37,44,64,int((230 if active else 145)*p)),
-            (144,161,204,int((155 if active else 60)*p)))
-        box(im,(929,y+13,959,y+45),7,(*ACCENT[n],int(245*p)))
-        text(im,n.title(),(975,y+18),20,(241,245,252) if active else (164,170,189),int(255*p),True)
-        if active:text(im,'ACTIVE',(1124,y+22),11,(177,194,247),int(255*p),True)
-    return im
 
-def scene3(t):
-    im=BASE[3].copy();p=vis(t,11.35,14.2,.35);logo(im,int(255*p))
-    text(im,'03    PERSONAL TO THE LAST PIXEL',(76,121),15,(180,196,236),int(255*p),True)
-    text(im,'Make it your own.',(73,193),62,alpha=int(255*p),bold=True)
-    text(im,'Card colors. 20 backgrounds. One simple place to customize.',(76,246),20,(170,184,205),int(235*p))
-    image_card(im,SHOTS['appearance-clock-face.png'],97,295,465,390,p,17)
-    image_card(im,PICS['ocean'],605,331,561,315,p,17)
-    text(im,'REAL NATIVE GTK SETTINGS',(710,674),12,(178,195,226),int(255*p),True)
-    return im
+def rgb(value):
+    if isinstance(value, tuple):
+        return value
+    return tuple(int(value[i:i + 2], 16) for i in (1, 3, 5))
 
-def scene4(t):
-    im=BASE[4].copy();p=vis(t,14.0,16.01,.3)
-    image_card(im,PICS['classic'],413,62,456,251,p,16)
-    text(im,'F L I Q L O',(642,390),62,(241,243,250),int(255*p),True,anchor='mm')
-    text(im,'U B U N T U',(643,446),23,(177,193,240),int(255*p),True,anchor='mm')
-    text(im,'TIME, BEAUTIFULLY CONSIDERED.',(642,518),24,(201,211,235),int(255*p),anchor='mm')
-    text(im,'FREE · OPEN SOURCE · MADE FOR GNOME',(640,663),14,(150,165,201),int(230*p),True,anchor='mm')
-    return im
 
-SCENES=[(0,3.1,scene0),(3,7.15,scene1),(7,11.6,scene2),(11.35,14.2,scene3),(14.0,16.01,scene4)]
-def render_at(t):
-    active=[(a,b,fn) for a,b,fn in SCENES if a<=t<b]
-    if not active:return BASE[4].convert('RGB')
-    if len(active)==1:return active[0][2](t).convert('RGB')
-    a,b,fn=active[0];c,d,gn=active[1]
-    return Image.blend(fn(t),gn(t),s((t-c)/(b-c))).convert('RGB')
+def tint(color, factor):
+    return tuple(max(0, min(255, round(c * factor))) for c in rgb(color))
 
-def sound(path):
-    fs=24000;n=int(fs*SECONDS);tt=np.arange(n)/fs
-    audio=np.zeros(n,dtype=float)
-    for freq,amplitude in [(110,.022),(164.8,.015),(220,.01),(261.6,.007)]:
-        audio+=amplitude*np.sin(2*np.pi*freq*tt)
-    audio*=np.sin(np.pi*tt/SECONDS)**.8
-    for at in [3.7,7.7,8.5,9.3,10.1,11.7,14.4]:
-        pos=int(at*fs);u=np.arange(int(.08*fs))/fs
-        audio[pos:pos+len(u)]+=.043*np.exp(-u*55)*np.sin(2*np.pi*140*u)
-    with wave.open(str(path),'wb') as wav:
-        wav.setnchannels(1);wav.setsampwidth(2);wav.setframerate(fs)
-        wav.writeframes(np.int16(np.clip(audio,-1,1)*32767).tobytes())
+
+def text(image, value, at, size, color=WHITE, bold=False, anchor='mm', max_width=None):
+    draw = ImageDraw.Draw(image)
+    face = font(size, bold)
+    if max_width is not None and draw.textbbox((0, 0), value, font=face)[2] > max_width:
+        raise ValueError(f'Text overflow at {size}px: {value!r}, max {max_width}')
+    draw.text(tuple(map(int, at)), value, fill=rgb(color), font=face, anchor=anchor)
+
+
+def rounded(image, rect, radius, color, outline=None, width=1):
+    ImageDraw.Draw(image).rounded_rectangle(tuple(round(v) for v in rect),
+        radius=radius, fill=rgb(color),
+        outline=rgb(outline) if outline else None, width=width)
+
+
+@lru_cache(maxsize=10)
+def background(kind='charcoal'):
+    top, bottom = {
+        'charcoal': ('#0d111c', '#07090f'),
+        'navy': ('#141a2c', '#080b14'),
+        'blue': ('#101d31', '#090d17'),
+    }[kind]
+    a, b = np.array(rgb(top), dtype=np.float32), np.array(rgb(bottom), dtype=np.float32)
+    ys = np.linspace(0, 1, H, dtype=np.float32)[:, None, None]
+    pixels = np.broadcast_to(a[None, None, :] * (1 - ys) + b[None, None, :] * ys,
+                              (H, W, 3)).astype(np.uint8).copy()
+    xs = np.linspace(-1, 1, W, dtype=np.float32)[None, :, None]
+    pixels = np.clip(pixels * (1 - np.abs(xs) * .14), 0, 255).astype(np.uint8)
+    return Image.fromarray(pixels, 'RGB')
+
+
+def brand(image, y=76):
+    rounded(image, (110, y - 19, 155, y + 26), 12, '#242b3d')
+    ImageDraw.Draw(image).line((111, y + 4, 154, y + 4), fill='#070b16', width=3)
+    text(image, '9', (132, y + 4), 21, bold=True)
+    text(image, 'FLIQLO / UBUNTU', (177, y + 6), 22, '#b6c3e1',
+         bold=True, anchor='lm', max_width=330)
+
+
+def clock_card(value, width, height, card_color='#18191d',
+               digit_color='#e5e5e7', period=''):
+    """Clip the full split-flap card, including gradients and digits."""
+    cw, ch = int(width), int(height)
+    face = Image.new('RGBA', (cw, ch), (0, 0, 0, 0))
+    mask = Image.new('L', (cw, ch), 0)
+    ImageDraw.Draw(mask).rounded_rectangle((0, 0, cw - 1, ch - 1),
+        radius=round(min(cw, ch) * .09), fill=255)
+    draw = ImageDraw.Draw(face)
+    draw.rectangle((0, 0, cw, ch / 2), fill=(*tint(card_color, 1.15), 255))
+    draw.rectangle((0, ch / 2, cw, ch), fill=(*tint(card_color, .86), 255))
+    inset = max(3, round(cw * .014))
+    draw.line((inset, round(ch * .5), cw - inset, round(ch * .5)),
+              fill=(0, 0, 0, 230), width=max(3, int(ch * .012)))
+    size = int(ch * .73)
+    while size > 24:
+        bounds = draw.textbbox((0, 0), str(value), font=font(size, True))
+        if bounds[2] - bounds[0] <= cw * .86 and bounds[3] - bounds[1] <= ch * .76:
+            break
+        size -= 4
+    draw.text((cw / 2, ch / 2), str(value), font=font(size, True),
+              anchor='mm', fill=(*rgb(digit_color), 255))
+    if period:
+        draw.text((cw * .11, ch * .10), period, font=font(int(ch * .09), True),
+                  anchor='la', fill=(*rgb(digit_color), 225))
+    face.putalpha(mask)
+    return face
+
+
+def clock(image, x, y, card_w, card_h, mode='classic', minute='41', period='AM'):
+    colors = {
+        'classic': ('#17181b', '#e5e5e8'),
+        'ocean': ('#163d5d', '#def3ff'),
+        'rose': ('#643149', '#ffe1ef'),
+        'ivory': ('#e9ddc9', '#2c384b'),
+        'forest': ('#1d4d40', '#d7ffe8'),
+    }
+    card_color, digit_color = colors[mode]
+    gap = round(card_w * .075)
+    for i, value in enumerate(('09', minute)):
+        face = clock_card(value, card_w, card_h, card_color, digit_color,
+                          period if i == 0 else '')
+        image.paste(face, (int(x + i * (card_w + gap)), int(y)), face)
+
+
+def label(image, value, y):
+    text(image, value, (W // 2, y), 21, ACCENT, bold=True, max_width=1450)
+
+
+def intro(t):
+    img = background('navy').copy()
+    brand(img)
+    label(img, 'A NEW MOMENT FOR YOUR DESKTOP', 240)
+    text(img, 'TIME,', (W // 2, 413), 133, WHITE, True, max_width=1480)
+    text(img, 'BEAUTIFULLY', (W // 2, 555), 119, ACCENT, True, max_width=1600)
+    text(img, 'CONSIDERED.', (W // 2, 700), 119, WHITE, True, max_width=1600)
+    text(img, 'THE FLIP-CLOCK EXPERIENCE FOR UBUNTU',
+         (W // 2, 871), 29, MUTED, max_width=1350)
+    return img
+
+
+def focus(t):
+    img = background('charcoal').copy()
+    brand(img)
+    label(img, '01  /  THE ESSENTIALS', 178)
+    text(img, 'THE CLASSIC FLIP-CLOCK FEEL.',
+         (W // 2, 268), 71, bold=True, max_width=1580)
+    card_w = 430
+    x = (W - (2 * card_w + round(card_w * .075))) // 2
+    clock(img, x, 352, card_w, 430, minute='40' if t < 5.35 else '41')
+    text(img, 'SMOOTH. QUIET. UNMISTAKABLE.',
+         (W // 2, 925), 25, MUTED, max_width=1350)
+    return img
+
+
+def color_showcase(t):
+    img = background('navy').copy()
+    brand(img)
+    label(img, '02  /  YOUR PALETTE', 155)
+    text(img, 'COLOR THE MOMENT.',
+         (W // 2, 245), 78, WHITE, True, max_width=1460)
+    for i, (name, card_color, digit_color, wall) in enumerate(PALETTES):
+        x = 138 + i * 558
+        rounded(img, (x, 354, x + 528, 776), 28, wall, outline='#36445e', width=3)
+        clock(img, x + 49, 428, 201, 210, mode=name.lower(), period='')
+        text(img, name, (x + 264, 717), 30, WHITE, True, max_width=430)
+        rounded(img, (x + 210, 740, x + 318, 745), 2, ACCENT)
+    text(img, 'CUSTOM CARDS. CUSTOM DIGITS. NO COMPROMISE.',
+         (W // 2, 939), 24, MUTED, max_width=1500)
+    return img
+
+
+@lru_cache(maxsize=2)
+def abstract_wallpaper():
+    """Original abstract wallpaper illustration, not a user's personal image."""
+    sw, sh = 1440, 580
+    yy, xx = np.mgrid[0:sh, 0:sw]
+    fade = xx / sw
+    pixels = np.zeros((sh, sw, 3), dtype=np.float32)
+    for channel, (v1, v2) in enumerate(((31, 91), (54, 65), (85, 119))):
+        pixels[:, :, channel] = v1 * (1 - fade) + v2 * fade
+    for cx, cy, rad, add in (
+        (340, 160, 310, (33, 40, 67)),
+        (1080, 420, 390, (5, 56, 34)),
+        (790, 50, 290, (33, 15, 54)),
+    ):
+        intensity = np.exp(-((xx - cx) ** 2 + (yy - cy) ** 2) / (2 * rad * rad))
+        for channel in range(3):
+            pixels[:, :, channel] += intensity * add[channel]
+    wall = Image.fromarray(np.clip(pixels, 0, 255).astype(np.uint8), 'RGB')
+    draw = ImageDraw.Draw(wall, 'RGBA')
+    draw.ellipse((-300, 380, 1000, 1100), fill=(11, 24, 37, 70))
+    draw.ellipse((600, 420, 2050, 1300), fill=(15, 30, 38, 70))
+    return wall
+
+
+def wallpaper(t):
+    img = background('charcoal').copy()
+    brand(img)
+    label(img, '03  /  YOUR BACKGROUND', 144)
+    text(img, 'YOUR SPACE. YOUR STYLE.',
+         (W // 2, 230), 70, WHITE, True, max_width=1560)
+    x, y = 245, 312
+    rounded(img, (x - 4, y - 4, x + 1444, y + 584), 30,
+            '#202a39', outline='#5c6d90', width=3)
+    layer = abstract_wallpaper().convert('RGBA')
+    layer.alpha_composite(Image.new('RGBA', (1440, 580), (0, 0, 0, 85)))
+    mask = Image.new('L', (1440, 580), 0)
+    ImageDraw.Draw(mask).rounded_rectangle((0, 0, 1439, 579), radius=28, fill=255)
+    img.paste(layer.convert('RGB'), (x, y), mask)
+    clock(img, 580, 382, 347, 347, mode='classic', period='')
+    text(img, 'YOUR IMAGES  /  YOUR COLORS  /  YOUR CONTROL',
+         (W // 2, 958), 24, MUTED, max_width=1460)
+    return img
+
+
+def switch(image, x, y, active=True):
+    rounded(image, (x, y, x + 92, y + 49), 25,
+            '#7899f0' if active else '#3a4152')
+    cx = x + (65 if active else 27)
+    ImageDraw.Draw(image).ellipse((cx - 18, y + 6, cx + 18, y + 42),
+                                 fill=(249, 250, 255))
+
+
+def settings(t):
+    img = background('blue').copy()
+    brand(img)
+    label(img, '04  /  SETTINGS, SIMPLIFIED', 162)
+    # Headline (x: 135..860) and illustration (x: 1005..1779) do not overlap.
+    text(img, 'MAKE IT', (135, 393), 88, WHITE, True,
+         anchor='la', max_width=700)
+    text(img, 'YOURS.', (135, 508), 104, ACCENT, True,
+         anchor='la', max_width=700)
+    text(img, 'COLORS  /  BACKDROPS  /  ANIMATION',
+         (138, 680), 25, MUTED, anchor='la', max_width=730)
+    text(img, 'Native GTK preferences.',
+         (138, 765), 32, WHITE, anchor='la', max_width=730)
+    x, y = 1005, 205
+    rounded(img, (x, y, x + 774, y + 663), 29,
+            '#e6e9ef', outline='#8393a6', width=3)
+    rounded(img, (x + 22, y + 20, x + 752, y + 74), 12, '#d0d6e0')
+    text(img, 'Appearance', (x + 385, y + 47), 25,
+         '#233247', True, max_width=400)
+    rounded(img, (x + 40, y + 118, x + 734, y + 600), 19, '#f8f9fc')
+    rows = (
+        ('Custom clock colors', 'toggle'),
+        ('Card background', 'swatch1'),
+        ('Digit color', 'swatch2'),
+        ('Background photo', 'swatch3'),
+        ('Auto-change photos', 'toggle'),
+    )
+    for i, (name, kind) in enumerate(rows):
+        yy = y + 159 + i * 90
+        text(img, name, (x + 74, yy + 14), 25,
+             '#263344', anchor='lm', max_width=455)
+        if kind == 'toggle':
+            switch(img, x + 602, yy - 13)
+        else:
+            color = {'swatch1': '#173a56',
+                     'swatch2': '#d5f1ff', 'swatch3': '#7384b8'}[kind]
+            rounded(img, (x + 603, yy - 18, x + 689, yy + 41),
+                    13, color, outline='#91a0af', width=2)
+    rounded(img, (x + 502, y + 621, x + 717, y + 652), 11, '#d3dae6')
+    text(img, 'Reset colors', (x + 609, y + 637), 17,
+         '#334157', bold=True, max_width=200)
+    return img
+
+
+def outro(t):
+    img = background('navy').copy()
+    clock(img, 684, 185, 258, 258, mode='classic', period='')
+    text(img, 'FLIQLO UBUNTU',
+         (W // 2, 645), 107, WHITE, True, max_width=1660)
+    text(img, 'TIME, BEAUTIFULLY CONSIDERED.',
+         (W // 2, 754), 39, ACCENT, max_width=1420)
+    rounded(img, (512, 847, 1408, 925), 27,
+            '#212c42', outline='#536481', width=2)
+    text(img, 'github.com/luan-thnh/fliqlo-ubuntu',
+         (W // 2, 884), 32, WHITE, max_width=810)
+    return img
+
+
+SCENES = (intro, focus, color_showcase, wallpaper, settings, outro)
+
+
+def scene_at(t):
+    index = min(len(SCENES) - 1,
+                max(0, int(np.searchsorted(BOUNDS, t, side='right') - 1)))
+    image = SCENES[index](t)
+    start, end = BOUNDS[index], BOUNDS[index + 1]
+    fade = min(1.0, (t - start) / .36, (end - t) / .32)
+    fade = max(0.0, min(1.0, fade))
+    # Fade through charcoal at boundaries, never crossfade two text overlays.
+    if fade < 1:
+        image = Image.blend(Image.new('RGB', (W, H), rgb(INK)),
+                            image, smooth(fade))
+    return image
+
+
+def soundtrack(path):
+    sr = 24000
+    n = int(sr * SECONDS)
+    t = np.arange(n, dtype=np.float64) / sr
+    data = np.zeros(n, dtype=np.float64)
+    for pitch, amplitude in ((110, .016), (164.81, .012),
+                             (220, .006), (329.63, .004)):
+        data += amplitude * np.sin(2 * np.pi * pitch * t)
+    data *= np.maximum(0, np.sin(np.pi * t / SECONDS) ** .65)
+    for when in (4.8, 5.35, 7.5, 10.8, 14.2, 17.5):
+        start = int(when * sr)
+        times = np.arange(int(.095 * sr)) / sr
+        data[start:start + len(times)] += (
+            .028 * np.sin(2 * np.pi * 158 * times) * np.exp(-times * 51))
+    with wave.open(str(path), 'wb') as out:
+        out.setnchannels(1)
+        out.setsampwidth(2)
+        out.setframerate(sr)
+        out.writeframes((np.clip(data, -1, 1) * 32767).astype(np.int16).tobytes())
+
 
 def ffmpeg_binary():
-    """Use system FFmpeg locally, or imageio-ffmpeg's bundled binary in CI."""
     existing = shutil.which('ffmpeg')
     if existing:
         return existing
     import imageio_ffmpeg
     return imageio_ffmpeg.get_ffmpeg_exe()
 
-def main():
-    OUT.mkdir(parents=True,exist_ok=True)
-    poster=OUT/'fliqlo-ubuntu-poster.jpg';render_at(4.0).save(poster,quality=91,optimize=True)
-    silent=OUT/'video.tmp.mp4';audio=OUT/'sound.tmp.wav'
-    sound(audio)
-    ffmpeg=[ffmpeg_binary(),'-hide_banner','-loglevel','error','-y',
-       '-f','rawvideo','-vcodec','rawvideo','-s',f'{W}x{H}','-pix_fmt','rgb24',
-       '-r',str(FPS),'-i','-','-an','-c:v','libx264','-preset','veryfast',
-       '-crf','21','-pix_fmt','yuv420p','-movflags','+faststart',str(silent)]
-    proc=subprocess.Popen(ffmpeg,stdin=subprocess.PIPE)
-    try:
-        for i in range(int(FPS*SECONDS)):
-            proc.stdin.write(render_at(i/FPS).tobytes())
-    finally:proc.stdin.close()
-    if proc.wait():raise RuntimeError('Failed to encode video')
-    final=OUT/'fliqlo-ubuntu-teaser.mp4'
-    subprocess.run([ffmpeg_binary(),'-hide_banner','-loglevel','error','-y','-i',str(silent),'-i',str(audio),
-        '-c:v','copy','-c:a','aac','-b:a','112k','-shortest','-movflags','+faststart',str(final)],check=True)
-    silent.unlink();audio.unlink()
-    assert final.stat().st_size>100_000
-    print(f'Created {final} ({final.stat().st_size} bytes), poster {poster.stat().st_size} bytes')
 
-if __name__=='__main__':main()
+def verify_storyboard():
+    sheet = Image.new('RGB', (1920, 720), rgb(INK))
+    for index in range(len(SCENES)):
+        t = (BOUNDS[index] + BOUNDS[index + 1]) / 2
+        thumbnail = scene_at(t).resize((640, 360), Image.Resampling.LANCZOS)
+        sheet.paste(thumbnail, ((index % 3) * 640, (index // 3) * 360))
+    sheet.save(OUT / 'fliqlo-ubuntu-storyboard.jpg',
+               quality=87, optimize=True)
+    return scene_at((BOUNDS[1] + BOUNDS[2]) / 2)
+
+
+def render():
+    OUT.mkdir(parents=True, exist_ok=True)
+    poster = verify_storyboard()
+    poster.save(OUT / 'fliqlo-ubuntu-poster.jpg',
+                quality=91, optimize=True)
+    sound = OUT / 'film-audio.tmp.wav'
+    silent = OUT / 'film-video.tmp.mp4'
+    soundtrack(sound)
+    command = [ffmpeg_binary(), '-hide_banner', '-loglevel', 'error', '-y',
+               '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', f'{W}x{H}',
+               '-r', str(FPS), '-i', '-', '-an', '-c:v', 'libx264',
+               '-preset', 'veryfast', '-crf', '18', '-pix_fmt', 'yuv420p',
+               '-movflags', '+faststart', str(silent)]
+    process = subprocess.Popen(command, stdin=subprocess.PIPE)
+    try:
+        for frame in range(SECONDS * FPS):
+            process.stdin.write(scene_at(frame / FPS).tobytes())
+    finally:
+        process.stdin.close()
+    if process.wait():
+        raise RuntimeError('FFmpeg video encoder failed')
+    final = OUT / 'fliqlo-ubuntu-teaser.mp4'
+    subprocess.run([ffmpeg_binary(), '-hide_banner', '-loglevel', 'error',
+        '-y', '-i', str(silent), '-i', str(sound), '-c:v', 'copy',
+        '-c:a', 'aac', '-b:a', '112k', '-movflags', '+faststart',
+        '-shortest', str(final)], check=True)
+    sound.unlink()
+    silent.unlink()
+    assert final.stat().st_size > 100_000
+    print(f'Rendered {W}x{H}, {FPS} fps, {SECONDS}s, {final.stat().st_size:,} bytes')
+
+
+if __name__ == '__main__':
+    render()
