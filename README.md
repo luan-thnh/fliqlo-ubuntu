@@ -9,6 +9,12 @@ An independent, open-source-ready implementation of a split-flap clock for Ubunt
 
 > **Status:** Pre-release 0.4.8 · GNOME Shell **50** / Ubuntu **26.04** target · MIT-licensed original code · maintainer review and real-desktop testing required before GNOME Extensions submission. Not affiliated with Fliqlo or its creator.
 
+## Watch the product film
+
+[![Fliqlo Ubuntu product film — flip-clock and customization showcase](docs/media/fliqlo-ubuntu-poster.jpg)](https://luan-thnh.github.io/fliqlo-ubuntu/#film)
+
+A **16-second cinematic overview** featuring real clock theme renders, native GTK settings, and original ambient audio. Watch it on the [landing page](https://luan-thnh.github.io/fliqlo-ubuntu/#film) or [view the MP4](docs/media/fliqlo-ubuntu-teaser.mp4). The deterministic renderer lives at [`scripts/render-promo-video.py`](scripts/render-promo-video.py).
+
 ## Clock formats
 
 Three **full-resolution** examples rendered by the same Cairo/Pango clock renderer used in the native application. All examples show the same time — **9:41 AM** — so only the formatting changes.
