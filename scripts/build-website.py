@@ -83,7 +83,7 @@ def build():
         raise AssertionError(f"Missing image alt text: {parser.images_without_alt}")
     if "__VERSION__" in html:
         raise AssertionError("Version placeholder not substituted")
-    if "theme-ivory.png" not in html or "appearance-clock-face.png" not in html:
+    if "theme-ivory.png" not in html or "appearance-clock-face.png" not in js:
         raise AssertionError("Missing project showcase imagery")
     if not any(word in css for word in ("@media(max-width:680px)", "@media(max-width:900px)")):
         raise AssertionError("Responsive CSS rules not found")
