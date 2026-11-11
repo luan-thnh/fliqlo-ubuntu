@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.4.7 — personalized clock-face colors
+
+- Independent flip-card background and digit/AM-PM text colors in the GTK app and GNOME Preferences, without removing the full-screen photo background.
+- Preserved the original classic card gradient by default; enabled optional colored cards with subtle shading.
+- Added **Reset colors** and **Reset Appearance**, with the photo library deliberately preserved.
+- Expanded the README with six actual Cairo/Pango color-preview renders (Classic, Ocean, Rose, Ivory, Forest, Amber) and a Clock Face settings screenshot.
+- Added Cairo and GJS rendering tests, GTK settings/reset tests, and screenshot CI checks.
+
+**Release candidate:** test customized colors and the photo slideshow on a real Ubuntu 26.04 / GNOME 50 Wayland desktop before publishing the GNOME extension.
+
+
 ## 0.4.6 — multi-photo custom backgrounds
 
 - Added a local photo library (up to 20 images) with multiple-file import, preview thumbnails, Use/Remove controls, and Clear all.
