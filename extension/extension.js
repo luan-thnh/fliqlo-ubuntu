@@ -57,6 +57,37 @@ export default class FliqloExtension extends Extension {
         }
     }
 
+    _photos() {
+        const images = this._settings.get_strv('background-image-uris').slice(0, 20);
+        const legacy = this._settings.get_string('background-image-uri');
+        return images.length ? images : (legacy ? [legacy] : []);
+    }
+
+    _setImageLayer(layer, uri) {
+        // The user-selected URI is never evaluated as CSS unless strictly local and safe.
+        if (!/^file:\/\/\/[A-Za-z0-9._~%/-]+$/i.test(uri) ||
+            !/\.(png|jpe?g|webp)$/i.test(uri)) {
+            layer.set_style('background-image: none;');
+            return;
+        }
+        try {
+            const file = Gio.File.new_for_uri(uri);
+            const info = file.query_info('standard::size,standard::type',
+                Gio.FileQueryInfoFlags.NONE, null);
+            if (info.get_file_type() !== Gio.FileType.REGULAR ||
+                info.get_size() > 16 * 1024 * 1024) {
+                layer.set_style('background-image: none;');
+                return;
+            }
+            const fit = ['cover', 'contain', '100% 100%', 'auto'][
+                Math.max(0, Math.min(3, this._settings.get_int('background-fit')))];
+            layer.set_style(`background-image: url("${uri}"); background-size: ${fit}; background-repeat: no-repeat; background-position: center;`);
+        } catch (error) {
+            console.warn('Fliqlo Ubuntu: invalid custom background', error);
+            layer.set_style('background-image: none;');
+        }
+    }
+
     _addBackdrop(monitor, mode) {
         if (mode === 0) return;
         const position = {x: monitor.x, y: monitor.y, width: monitor.width, height: monitor.height};
@@ -67,30 +98,12 @@ export default class FliqloExtension extends Extension {
             if (/^#[0-9a-fA-F]{6}$/.test(color))
                 this._root.add_child(new St.Widget({...position, style: `background-color: ${color};`}));
         } else if (mode === 2) {
-            const uri = this._settings.get_string('background-image-uri');
-            // Only well-formed local image file URIs are permitted in Shell CSS.
-            if (/^file:\/\/\/[A-Za-z0-9._~%/-]+$/i.test(uri) &&
-                /\.(png|jpe?g|webp)$/i.test(uri)) {
-                let permitted = false;
-                try {
-                    const file = Gio.File.new_for_uri(uri);
-                    const info = file.query_info('standard::size,standard::type',
-                        Gio.FileQueryInfoFlags.NONE, null);
-                    permitted = info.get_file_type() === Gio.FileType.REGULAR &&
-                        info.get_size() <= 16 * 1024 * 1024;
-                } catch (e) {
-                    console.warn('Fliqlo Ubuntu: cannot read background image', e);
-                }
-                if (permitted) {
-                    const sizing = ['cover', 'contain', '100% 100%', 'auto'][
-                        Math.max(0, Math.min(3, this._settings.get_int('background-fit')))];
-                    const layer = new St.Widget({...position,
-                        opacity: Math.round(Math.max(0, Math.min(100,
-                            this._settings.get_int('background-opacity'))) * 255 / 100),
-                        style: `background-image: url("${uri}"); background-size: ${sizing}; background-repeat: no-repeat; background-position: center;`});
-                    this._root.add_child(layer);
-                }
-            }
+            const layer = new St.Widget({...position,
+                opacity: Math.round(Math.max(0, Math.min(100,
+                    this._settings.get_int('background-opacity'))) * 255 / 100)});
+            this._setImageLayer(layer, this._imageLibrary[this._imageIndex] || '');
+            this._root.add_child(layer);
+            this._imageLayers.push(layer);
         }
         if (dim > 0)
             this._root.add_child(new St.Widget({...position,
@@ -104,6 +117,12 @@ export default class FliqloExtension extends Extension {
             width: global.stage.width, height: global.stage.height});
         Main.layoutManager.addTopChrome(this._root, {trackFullscreen: false});
         this._areas = [];
+        this._imageLayers = [];
+        this._imageLibrary = this._photos();
+        this._imageIndex = Math.max(0, Math.min(
+            this._settings.get_int('background-selected-index'), this._imageLibrary.length - 1));
+        this._nextSlide = GLib.get_monotonic_time() +
+            this._settings.get_int('background-slideshow-seconds') * 1000000;
         const backdropMode = this._settings.get_int('background-mode');
         const options = {
             scale: this._settings.get_int('scale'),
@@ -146,6 +165,15 @@ export default class FliqloExtension extends Extension {
             return;
         }
         this._tick = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 250, () => {
+            if (this._settings.get_int('background-mode') === 2 &&
+                this._settings.get_boolean('background-slideshow') &&
+                this._imageLibrary.length > 1 && GLib.get_monotonic_time() >= this._nextSlide) {
+                this._imageIndex = (this._imageIndex + 1) % this._imageLibrary.length;
+                for (const layer of this._imageLayers)
+                    this._setImageLayer(layer, this._imageLibrary[this._imageIndex]);
+                this._nextSlide = GLib.get_monotonic_time() +
+                    this._settings.get_int('background-slideshow-seconds') * 1000000;
+            }
             const next = parts(new Date(), this._settings.get_int('time-format'));
             if (JSON.stringify(next) !== JSON.stringify(this._current)) {
                 this._previous = this._current;
@@ -188,6 +216,8 @@ export default class FliqloExtension extends Extension {
             this._root = null;
         }
         this._areas = [];
+        this._imageLayers = [];
+        this._imageLibrary = [];
     }
 
     disable() {

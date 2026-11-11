@@ -16,15 +16,19 @@ class Actor extends Signals {
     destroy() {this.destroyed = true; this.signals.clear();}
     set_cursor_type() {}
     queue_repaint() {this.repainted = true;}
+    set_style(style) {this.style = style;}
 }
 const config = new Signals();
 config.values = {'idle-enabled': true, 'idle-seconds': 120, scale: 100, brightness: 100,
-    'flip-animation': true, background: true, 'multiple-displays': true, 'time-format': 0, 'font-family': 'DejaVu Sans'};
-config.get_boolean = config.get_int = config.get_string = key => config.values[key];
+    'flip-animation': true, background: true, 'multiple-displays': true, 'time-format': 0, 'font-family': 'DejaVu Sans',
+    'background-image-uris': [], 'background-selected-index': 0,
+    'background-slideshow': false, 'background-slideshow-seconds': 10};
+config.get_boolean = config.get_int = config.get_string = config.get_strv = key => config.values[key];
 const idleWatches = new Map(); let nextWatch = 1;
 const idle = {add_idle_watch(ms, cb) {const id = nextWatch++; idleWatches.set(id, {ms, cb}); return id;}, remove_watch(id) {idleWatches.delete(id);}};
 const timers = new Map(); let nextTimer = 1;
-const GLib = {PRIORITY_DEFAULT: 0, SOURCE_REMOVE: false, SOURCE_CONTINUE: true,
+let monotonicTime = 0;
+const GLib = {get_monotonic_time: () => monotonicTime, PRIORITY_DEFAULT: 0, SOURCE_REMOVE: false, SOURCE_CONTINUE: true,
     timeout_add(_priority, _interval, cb) {const id = nextTimer++; timers.set(id, cb); return id;},
     Source: {remove(id) {timers.delete(id);}}};
 const session = Object.assign(new Signals(), {currentMode: 'ubuntu', parentMode: 'user', isLocked: false, isGreeter: false});
@@ -134,6 +138,19 @@ assert(ext._root.children.some(child =>
     child.style?.includes('background-image: url("file:///tmp/demo.png")') &&
     child.opacity === Math.round(50 * 255 / 100)),
     'Local image URI and configured alpha should be applied');
+ext._hide();
+config.values['background-mode'] = 2;
+config.values['background-image-uris'] = ['file:///tmp/a.png', 'file:///tmp/b.png'];
+config.values['background-selected-index'] = 0;
+config.values['background-slideshow'] = true;
+config.values['background-slideshow-seconds'] = 10;
+config.emit('changed', 'preview-token');
+assert(ext._imageLayers.length === 1, 'A background layer is created on primary monitor');
+assert(ext._imageLayers[0].style.includes('file:///tmp/a.png'), 'First image selected');
+monotonicTime = 11_000_000;
+timers.get(ext._tick)();
+assert(ext._imageLayers[0].style.includes('file:///tmp/b.png'), 'Slideshow advances without recreating the clock');
+assert(ext._areas.length === 1, 'Slideshow keeps clock rendering area intact');
 ext.disable();
 assert.equal(roots.size + grabs + timers.size + idleWatches.size, 0);
 assert.equal(config.signals.size + layout.signals.size + session.signals.size, 0);
