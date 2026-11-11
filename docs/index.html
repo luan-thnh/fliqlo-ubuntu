@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0a0b0e">
+  <meta name="description" content="Fliqlo Ubuntu — a beautifully minimal flip-clock screensaver for GNOME on Wayland. Customize colors, backgrounds and idle behavior, with native GTK settings.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Fliqlo Ubuntu — Time, beautifully considered.">
+  <meta property="og:description" content="The iconic flip-clock feeling, reimagined for Ubuntu and GNOME.">
+  <meta property="og:image" content="https://luan-thnh.github.io/fliqlo-ubuntu/assets/theme-ocean.png">
+  <meta property="og:url" content="https://luan-thnh.github.io/fliqlo-ubuntu/">
+  <link rel="canonical" href="https://luan-thnh.github.io/fliqlo-ubuntu/">
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+  <link rel="stylesheet" href="./styles.css">
+  <title>Fliqlo Ubuntu — Time, beautifully considered.</title>
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="page-glow" aria-hidden="true"></div>
+  <header class="site-header">
+    <nav class="navigation wrap" aria-label="Main navigation">
+      <a class="brand" href="#home" aria-label="Fliqlo Ubuntu home">
+        <span class="brand-icon" aria-hidden="true"><span>9</span><i></i><span>4</span></span>
+        <span>fliqlo<span class="brand-sub">/ ubuntu</span></span>
+      </a>
+      <div class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#customize">Customize</a>
+        <a href="#screenshots">Screenshots</a>
+        <a href="#install">Install</a>
+      </div>
+      <a class="nav-github" href="https://github.com/luan-thnh/fliqlo-ubuntu" target="_blank" rel="noopener noreferrer" aria-label="View Fliqlo Ubuntu on GitHub">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .9A11.1 11.1 0 0 0 8.5 22.5c.56.1.76-.24.76-.53v-2.1c-3.1.68-3.75-1.32-3.75-1.32-.5-1.28-1.23-1.62-1.23-1.62-1.02-.7.08-.69.08-.69 1.14.08 1.74 1.17 1.74 1.17 1.02 1.74 2.67 1.24 3.32.95.1-.74.4-1.24.72-1.52-2.47-.28-5.07-1.24-5.07-5.5 0-1.21.43-2.2 1.16-2.98-.12-.28-.5-1.4.1-2.92 0 0 .95-.3 3.05 1.14a10.65 10.65 0 0 1 5.55 0C17 5.4 17.94 5.7 17.94 5.7c.61 1.52.23 2.64.12 2.92.72.78 1.15 1.77 1.15 2.98 0 4.27-2.6 5.22-5.08 5.5.4.35.76 1.03.76 2.08v3.09c0 .29.2.64.77.53A11.1 11.1 0 0 0 12 .9Z"/></svg>
+        <span>GitHub</span>
+      </a>
+    </nav>
+  </header>
+
+  <main id="main">
+    <section class="hero wrap" id="home" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <div class="eyebrow"><span class="status-dot"></span> MADE FOR GNOME · BUILT FOR LINUX</div>
+        <h1 id="hero-title">Time, <span class="text-gradient">beautifully</span> considered.</h1>
+        <p class="hero-description">The timeless flip clock, thoughtfully reimagined for your Ubuntu desktop. Quiet when you work. Beautiful when you pause.</p>
+        <div class="hero-actions">
+          <a class="button button-primary" href="https://github.com/luan-thnh/fliqlo-ubuntu/releases/download/v0.4.8/fliqlo-ubuntu_0.4.8_all.deb">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v3h16v-3"/></svg>
+            Download for Ubuntu
+          </a>
+          <a class="button button-secondary" href="#customize">Explore the experience <span aria-hidden="true">↗</span></a>
+        </div>
+        <div class="hero-meta">
+          <span><span class="meta-dot"></span> Open source · MIT</span>
+          <span>GNOME 50 target</span>
+          <span>v0.4.8 pre-release</span>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="hero-aurora" aria-hidden="true"></div>
+        <div class="preview-shell" id="clock-preview" data-theme="classic">
+          <div class="preview-topbar">
+            <span class="window-controls" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span class="preview-title">Fliqlo Ubuntu <span>— Live Preview</span></span>
+            <span class="live-indicator"><span></span> LIVE</span>
+          </div>
+          <div class="clock-stage">
+            <div class="clock-numbers" aria-label="Live flip clock">
+              <div class="clock-card"><span id="clock-hours">9</span><small id="clock-period">AM</small><i aria-hidden="true"></i></div>
+              <div class="clock-card"><span id="clock-minutes">41</span><i aria-hidden="true"></i></div>
+            </div>
+            <p class="clock-hint">A little moment of calm, every minute.</p>
+          </div>
+          <div class="preview-bottom">
+            <div class="segmented" role="group" aria-label="Clock format">
+              <button type="button" data-format="12" aria-pressed="true" class="is-active">12-hour</button>
+              <button type="button" data-format="24" aria-pressed="false">24-hour</button>
+              <button type="button" data-format="24pad" aria-pressed="false">24-hour 00</button>
+            </div>
+            <span class="preview-time-label">Your local time</span>
+          </div>
+        </div>
+        <div class="floating-note"><span class="tiny-sparkle">✦</span><span>Designed to disappear.<br><strong>Made to be noticed.</strong></span></div>
+      </div>
+    </section>
+
+    <section class="intro-ribbon wrap" aria-label="Project highlights">
+      <div><strong>01</strong><span>Native GNOME<br>integration</span></div>
+      <div><strong>02</strong><span>Make every pixel<br>your own</span></div>
+      <div><strong>03</strong><span>No cloud.<br>No distractions.</span></div>
+      <div><strong>∞</strong><span>Open source.<br>Made to last.</span></div>
+    </section>
+
+    <section class="section wrap" id="features" aria-labelledby="features-title">
+      <div class="section-heading">
+        <div><p class="overline">01 / THE EXPERIENCE</p><h2 id="features-title">Just the essentials.<br><span>Nothing in the way.</span></h2></div>
+        <p class="section-intro">The little details turn a familiar clock into something that feels right at home on your desktop.</p>
+      </div>
+      <div class="feature-grid">
+        <article class="feature-card feature-large">
+          <div class="feature-mark">✳</div>
+          <h3>A screen worth returning to.</h3>
+          <p>Split-flap movement with a carefully timed 330 ms transition. Switch off animation whenever you prefer stillness.</p>
+          <div class="feature-visual"><img loading="lazy" src="./assets/theme-classic.png" width="1600" height="900" alt="Classic gray flip clock displayed against a black background"></div>
+        </article>
+        <article class="feature-card">
+          <div class="feature-mark">◷</div>
+          <h3>On your schedule.</h3>
+          <p>Appears when your GNOME session is idle and steps aside when you're back. Lock-screen and power controls stay with GNOME.</p>
+          <div class="mini-graphic"><span>ACTIVE</span><span class="dotted-line"></span><span class="mini-clock">09<span>:</span>41</span><span class="mini-tag">IDLE</span></div>
+        </article>
+        <article class="feature-card">
+          <div class="feature-mark">◈</div>
+          <h3>Personal by design.</h3>
+          <p>Choose your card colors, digit colors, wallpapers, opacity and fit. Even cycle through up to 20 of your own photos.</p>
+          <div class="color-dots"><span style="background:#173a56"></span><span style="background:#572c43"></span><span style="background:#e8ddc9"></span><span style="background:#194d40"></span><span style="background:#634222"></span></div>
+        </article>
+        <article class="feature-card feature-bottom">
+          <div class="feature-mark">⌘</div>
+          <h3>Feels like GNOME.</h3>
+          <p>Native GTK settings, extension-native preferences, multiple displays and light/dark appearance.</p>
+        </article>
+        <article class="feature-card feature-bottom">
+          <div class="feature-mark">◎</div>
+          <h3>Yours, entirely.</h3>
+          <p>Local image files stay on your computer. No account, subscription, telemetry service or background web server.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section themes-section" id="customize" aria-labelledby="customize-title">
+      <div class="wrap">
+        <div class="section-heading">
+          <div><p class="overline">02 / PERSONALIZE EVERYTHING</p><h2 id="customize-title">One clock.<br><span>Endless character.</span></h2></div>
+          <p class="section-intro">Make it warm, cool, bold or understated. Select a look below to try its colors on the live clock above.</p>
+        </div>
+        <div class="themes-grid" role="group" aria-label="Preview flip-clock color combinations">
+          <button class="theme-tile is-selected" type="button" data-theme="classic" aria-pressed="true"><img loading="lazy" src="./assets/theme-classic.png" width="1600" height="900" alt="Classic dark clock with white numbers"><span><strong>Classic</strong><small>Timeless monochrome</small></span><i aria-hidden="true">↗</i></button>
+          <button class="theme-tile" type="button" data-theme="ocean" aria-pressed="false"><img loading="lazy" src="./assets/theme-ocean.png" width="1600" height="900" alt="Ocean blue cards with pale blue digits"><span><strong>Ocean</strong><small>A breath of blue</small></span><i aria-hidden="true">↗</i></button>
+          <button class="theme-tile" type="button" data-theme="rose" aria-pressed="false"><img loading="lazy" src="./assets/theme-rose.png" width="1600" height="900" alt="Rose-toned clock with soft pink numerals"><span><strong>Rose</strong><small>Soft afterglow</small></span><i aria-hidden="true">↗</i></button>
+          <button class="theme-tile" type="button" data-theme="ivory" aria-pressed="false"><img loading="lazy" src="./assets/theme-ivory.png" width="1600" height="900" alt="Warm ivory flip clock with dark digits"><span><strong>Ivory</strong><small>Warm minimalism</small></span><i aria-hidden="true">↗</i></button>
+          <button class="theme-tile" type="button" data-theme="forest" aria-pressed="false"><img loading="lazy" src="./assets/theme-forest.png" width="1600" height="900" alt="Forest green cards and mint digits"><span><strong>Forest</strong><small>Quiet and grounded</small></span><i aria-hidden="true">↗</i></button>
+          <button class="theme-tile" type="button" data-theme="amber" aria-pressed="false"><img loading="lazy" src="./assets/theme-amber.png" width="1600" height="900" alt="Amber clock with warm golden numerals"><span><strong>Amber</strong><small>Golden hour, always</small></span><i aria-hidden="true">↗</i></button>
+        </div>
+        <p class="gallery-disclaimer">These are real images generated by the project's Cairo renderer at 9:41 AM. They demonstrate color combinations, not bundled one-click presets.</p>
+      </div>
+    </section>
+
+    <section class="section wrap" id="screenshots" aria-labelledby="screenshots-title">
+      <div class="section-heading">
+        <div><p class="overline">03 / UNDER THE HOOD</p><h2 id="screenshots-title">Beautifully simple<br><span>to make your own.</span></h2></div>
+        <p class="section-intro">A focused native settings experience with room for all the things you actually want to change.</p>
+      </div>
+      <div class="screenshots-layout">
+        <div class="screenshot-caption">
+          <span class="small-index">REAL APPLICATION CAPTURES</span>
+          <h3 id="screenshot-title">Appearance</h3>
+          <p id="screenshot-description">Adjust formats, brightness, animation and the overall clock experience in one place.</p>
+          <div class="screenshot-tabs" role="group" aria-label="Choose application screenshot">
+            <button type="button" class="is-active" data-shot="appearance" aria-pressed="true">Appearance</button>
+            <button type="button" data-shot="colors" aria-pressed="false">Clock colors</button>
+            <button type="button" data-shot="photos" aria-pressed="false">Photo library</button>
+            <button type="button" data-shot="dark" aria-pressed="false">Dark mode</button>
+            <button type="button" data-shot="idle" aria-pressed="false">Idle behavior</button>
+          </div>
+          <p class="screenshot-footnote">Captured from the GTK app on Ubuntu using a headless desktop. GNOME Shell extension preferences may look different.</p>
+        </div>
+        <div class="screenshot-frame"><img id="screenshot-image" loading="lazy" src="./assets/appearance-light.png" width="690" height="876" alt="Native GTK Appearance settings window in light theme"></div>
+      </div>
+    </section>
+
+    <section class="section install-section" id="install" aria-labelledby="install-title">
+      <div class="wrap">
+        <div class="section-heading">
+          <div><p class="overline">04 / GET STARTED</p><h2 id="install-title">A better idle screen.<br><span>A few clicks away.</span></h2></div>
+          <p class="section-intro">Made for Ubuntu 26.04 and GNOME Shell 50. The current release is a pre-release: check compatibility with your setup before installing.</p>
+        </div>
+        <div class="install-grid">
+          <article class="install-card install-featured">
+            <span class="install-type">RECOMMENDED</span>
+            <div class="install-icon">↓</div>
+            <h3>Ubuntu package</h3>
+            <p>Install the desktop settings app, fullscreen preview and GNOME integration together.</p>
+            <div class="terminal"><div class="terminal-top"><span>TERMINAL</span><button type="button" id="copy-install" aria-label="Copy installation command">Copy <span aria-hidden="true">↗</span></button></div><code id="install-command">sudo apt install ./fliqlo-ubuntu_0.4.8_all.deb</code></div>
+            <a class="button button-primary install-cta" href="https://github.com/luan-thnh/fliqlo-ubuntu/releases/download/v0.4.8/fliqlo-ubuntu_0.4.8_all.deb">Download .deb <span aria-hidden="true">↗</span></a>
+          </article>
+          <article class="install-card">
+            <span class="install-type">ALTERNATIVE</span>
+            <div class="install-icon muted">⌘</div>
+            <h3>Standalone extension</h3>
+            <p>Prefer just the GNOME Shell extension? Get the ZIP from GitHub Releases and manage settings in GNOME Extensions.</p>
+            <ul class="install-list"><li>GNOME Shell 50 target</li><li>Extension-native preferences</li><li>No standalone settings app required</li></ul>
+            <a class="button button-secondary install-cta" href="https://github.com/luan-thnh/fliqlo-ubuntu/releases/tag/v0.4.8">Get extension ZIP <span aria-hidden="true">↗</span></a>
+          </article>
+        </div>
+        <div class="install-note"><span>ⓘ</span><p>Fliqlo Ubuntu is an independent project and is not affiliated with the original Fliqlo software. It does not bundle proprietary Fliqlo fonts or binaries. Test on a real GNOME/Wayland desktop before relying on it as a screensaver.</p></div>
+      </div>
+    </section>
+
+    <section class="closing wrap" aria-labelledby="closing-title">
+      <div class="closing-line" aria-hidden="true">✳</div>
+      <p class="overline">A LITTLE SPACE FOR TIME</p>
+      <h2 id="closing-title">Make room for<br><em>the moment.</em></h2>
+      <p>Free to explore. Thoughtfully made. Yours to customize.</p>
+      <a class="button button-primary" href="https://github.com/luan-thnh/fliqlo-ubuntu">Explore on GitHub <span aria-hidden="true">↗</span></a>
+    </section>
+  </main>
+  <footer class="footer wrap">
+    <a class="brand" href="#home"><span class="brand-icon small" aria-hidden="true"><span>9</span><i></i><span>4</span></span>fliqlo<span class="brand-sub">/ ubuntu</span></a>
+    <p>Made with care by <a href="https://github.com/luan-thnh" target="_blank" rel="noopener noreferrer">luan-thnh</a> · <span id="year">2026</span></p>
+    <div><a href="https://github.com/luan-thnh/fliqlo-ubuntu">Source</a><a href="https://github.com/luan-thnh/fliqlo-ubuntu/releases">Releases</a><a href="https://github.com/luan-thnh/fliqlo-ubuntu/blob/main/LICENSE">MIT License</a></div>
+  </footer>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>

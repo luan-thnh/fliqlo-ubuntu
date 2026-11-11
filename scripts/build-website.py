@@ -94,6 +94,14 @@ def build():
     total = sum(file.stat().st_size for file in TARGET.rglob("*") if file.is_file())
     print(f"Built GitHub Pages site for v{VERSION}: {len(parser.local_files)} local references; "
           f"{total / 1024:.1f} KiB, images={len(list((TARGET / 'assets').glob('*.png')))}")
+    if "--sync-docs" in sys.argv[1:]:
+        # The repository's GitHub Pages publishing source is main/docs.
+        # Keep the website source and the checked-in Pages output in sync.
+        docs = ROOT / "docs"
+        for filename in ("index.html", "styles.css", "app.js", "favicon.svg"):
+            shutil.copy2(TARGET / filename, docs / filename)
+        (docs / ".nojekyll").touch()
+        print("Synchronized main/docs for branch-based GitHub Pages deployment")
     print(f"Output directory: {TARGET}")
 
 

@@ -1,33 +1,37 @@
-# Landing page — GitHub Pages
+# Website / GitHub Pages
 
-Source: `website/index.html`, `website/styles.css`, `website/app.js`.
+**Public address:** https://luan-thnh.github.io/fliqlo-ubuntu/
 
-Live URL once GitHub Pages is enabled:
-**https://luan-thnh.github.io/fliqlo-ubuntu/**
+The repository is configured to publish GitHub Pages from the `main` branch's `/docs` folder. Its automatic **pages build and deployment** workflow is managed by GitHub.
 
-## Build locally
+## Source and publishing
+
+- Source of truth: `website/index.html`, `website/styles.css`, `website/app.js`, `website/favicon.svg`.
+- Published files: `docs/index.html`, `docs/styles.css`, `docs/app.js`, `docs/favicon.svg`.
+- Real image assets: `docs/assets/*.png` (actual project renderer outputs and GTK screenshots; no external stock media).
+
+Run this when changing the website or `VERSION`:
+
+```bash
+python3 scripts/build-website.py --sync-docs
+git add website docs/index.html docs/styles.css docs/app.js docs/favicon.svg docs/.nojekyll
+git commit -m "site: update landing page"
+git push
+```
+
+GitHub automatically rebuilds and publishes `/docs` after a branch push. The separate `.github/workflows/pages.yml` **validates** that the website source and published files are synchronized, and uploads a ZIP-like Actions artifact for review. It is not itself responsible for deploying Pages.
+
+## Preview locally
 
 ```bash
 python3 scripts/build-website.py
 python3 -m http.server 8000 --directory _site
 ```
 
-Open `http://localhost:8000` to preview.
+Browse to http://localhost:8000.
 
-This is a dependency-free static website. The build reads `VERSION`, renders it into the page, and copies actual project-generated clock theme images and native GTK screenshots from `docs/assets` into `_site/assets`. It validates image links and internal anchor targets.
+The builder injects the current release from `VERSION`, validates internal asset links and HTML anchors, then copies checked-in clock and Settings images. No Node build chain or npm packages are required.
 
-## GitHub Pages publishing
+## First-time GitHub setup
 
-The workflow `.github/workflows/pages.yml` runs on updates to the site, project version, and demo images, and deploys via `actions/upload-pages-artifact` + `actions/deploy-pages`.
-
-**First-time setup, if the deploy job reports Pages is not enabled:**
-
-1. Open **GitHub repository → Settings → Pages**.
-2. Under **Build and deployment → Source**, select **GitHub Actions**.
-3. Rerun the **Website · GitHub Pages** workflow from **Actions**.
-
-GitHub App connector permissions here do not expose an action for changing repository Pages settings, and GitHub's `configure-pages` action cannot enable Pages automatically using the default `GITHUB_TOKEN`; a different token with Pages/admin permissions would be needed. Do not publish a token in source control.
-
-The existing `build.yml` for Debian/extension releases is kept separate so website changes do not require publishing a new software version. The Download button links to the `.deb` from the release matching `VERSION`.
-
-For production, keep Pages deployments limited to the `main` branch and ensure HTTPS is enabled (GitHub-hosted domains use HTTPS by default).
+This repository has been observed using the branch publishing source **main/docs**. If Pages is disabled later, open **Settings → Pages**, select **Deploy from a branch**, branch **main**, folder **/docs**, and save. Do not select the GitHub Actions source unless also replacing the current branch deployment configuration.
