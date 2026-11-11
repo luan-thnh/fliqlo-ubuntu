@@ -53,3 +53,5 @@ python3 scripts/build-website.py --sync-docs
 ```
 
 The landing page uses native HTML5 video, defaults to **muted**, pauses when offscreen, has play/sound/fullscreen controls, honors reduced motion, and includes a poster fallback. GitHub Pages serves static MP4 directly. No paid video API or client-side rendering dependency.
+
+**Video QA:** all clock renders and GTK screenshots are aspect-preserving crops, never stretched; the encoder is provided by local FFmpeg or a pinned imageio-ffmpeg fallback. The GitHub Pages publish source includes the regenerated MP4 and poster.
