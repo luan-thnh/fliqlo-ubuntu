@@ -1,0 +1,1 @@
+{"uuid":"fliqlo-runtime-test@codex","name":"Fliqlo disposable-session test helper","description":"Only for isolated integration tests; never included in the app package","shell-version":["50"],"version":1}

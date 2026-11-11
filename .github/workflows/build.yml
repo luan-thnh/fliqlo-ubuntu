@@ -1,0 +1,27 @@
+name: Check and package GNOME extension + Debian app
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install test and build dependencies
+        run: sudo apt-get update && sudo apt-get install -y python3-gi python3-cairo python3-gi-cairo python3-fonttools python3-brotli python3-pil gjs gir1.2-gtk-3.0 libglib2.0-bin xvfb dbus-x11 zip
+      - name: Validate sources and tests
+        run: ./scripts/check.sh
+      - name: Build GNOME extension and Debian package
+        run: |
+          ./scripts/build-extension.sh
+          ./scripts/build-deb.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fliqlo-ubuntu-release-candidates
+          path: dist/*

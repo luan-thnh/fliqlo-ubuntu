@@ -1,0 +1,11 @@
+/dist/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+extension/schemas/gschemas.compiled
+*.egg-info/
+*.dmg
+*.scr
+*.otf
+node_modules/

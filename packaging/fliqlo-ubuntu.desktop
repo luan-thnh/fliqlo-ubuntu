@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Fliqlo Ubuntu
+Comment=Configure the flip clock screensaver for GNOME / Wayland
+Comment[vi]=Cài đặt đồng hồ lật và screensaver cho GNOME / Wayland
+Exec=fliqlo-ubuntu
+Icon=fliqlo-ubuntu
+Terminal=false
+Categories=Settings;DesktopSettings;
+Keywords=clock;screensaver;flip;fliqlo;
+StartupNotify=true

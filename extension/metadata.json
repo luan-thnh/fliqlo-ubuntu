@@ -1,0 +1,10 @@
+{
+  "uuid": "fliqlo-ubuntu@luan-thnh",
+  "name": "Fliqlo Ubuntu",
+  "description": "Flip clock screensaver with idle activation and native preferences. Keeps GNOME screen locking intact.",
+  "shell-version": [
+    "50"
+  ],
+  "settings-schema": "org.gnome.shell.extensions.fliqlo-ubuntu",
+  "url": "https://github.com/luan-thnh/fliqlo-ubuntu"
+}

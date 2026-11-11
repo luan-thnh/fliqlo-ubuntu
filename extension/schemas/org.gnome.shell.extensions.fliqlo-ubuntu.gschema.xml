@@ -1,0 +1,14 @@
+<schemalist>
+  <schema id="org.gnome.shell.extensions.fliqlo-ubuntu" path="/org/gnome/shell/extensions/fliqlo-ubuntu/">
+    <key name="time-format" type="i"><default>0</default><range min="0" max="2"/><summary>0: 1–12 AM/PM; 1: 0–23; 2: 00–23</summary></key>
+    <key name="scale" type="i"><default>100</default><range min="50" max="100"/><summary>Clock scale in percent</summary></key>
+    <key name="brightness" type="i"><default>100</default><range min="50" max="100"/><summary>Clock brightness in percent</summary></key>
+    <key name="background" type="b"><default>true</default><summary>Show the split card background</summary></key>
+    <key name="flip-animation" type="b"><default>true</default><summary>Animate flips independently of desktop effects; disable for reduced motion</summary></key>
+    <key name="multiple-displays" type="b"><default>true</default><summary>Show the clock on every monitor</summary></key>
+    <key name="idle-enabled" type="b"><default>true</default><summary>Activate on idle</summary></key>
+    <key name="idle-seconds" type="i"><default>120</default><range min="10" max="7200"/><summary>Idle delay in seconds; independent of GNOME locking</summary></key>
+    <key name="font-family" type="s"><default>'DejaVu Sans'</default><summary>Font used to draw digits; Fliqlo after a local font import</summary></key>
+    <key name="preview-token" type="i"><default>0</default><summary>Change to request a fullscreen preview</summary></key>
+  </schema>
+</schemalist>

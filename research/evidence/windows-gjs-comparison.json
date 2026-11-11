@@ -1,0 +1,290 @@
+{
+  "renderer": "gjs",
+  "reference_html_sha256": "467aef770179626feff3a24d9d9a9c4b8fd58a297c9994320708fc6a85d62fa7",
+  "implementation_sha256": {
+    "native/model.py": "7f8bcad98ff8e7b407b1fac61216ec3b009ea17656bb5ebc48d1c7629d755648",
+    "native/render.py": "364e49c2283c652d3514c941c9adec64c8c553b06daae5d956ed2214d7ebc1f7",
+    "extension/clock.js": "5aa11dd71217ebefc2039c43c1811471889fb220c52722959c9bb83975ead7af"
+  },
+  "scope": "Static frames and explicitly paused animation frames of recovered Windows HTML in Linux Chromium vs Cairo/Pango, same local font; not Windows runtime or GNOME session equivalence.",
+  "threshold": {
+    "channel_difference": 10,
+    "edge_tolerance_pixels": 1,
+    "max_structural_fraction_of_active_pixels": 0.002,
+    "max_mean_absolute_error": 2
+  },
+  "results": [
+    {
+      "case": {
+        "width": 1350,
+        "height": 700,
+        "hour": 13,
+        "minute": 11,
+        "format": 0,
+        "scale": 100,
+        "brightness": 100,
+        "background": true
+      },
+      "structural_pixels_over_10": 0,
+      "fraction_structural_of_active": 0.0,
+      "mean_absolute_error_0_255": 0.38344761904761904,
+      "pixels_over_10": 580,
+      "active_pixels": 711074,
+      "fraction_over_10_of_active": 0.0008156675676511868
+    },
+    {
+      "case": {
+        "width": 1350,
+        "height": 700,
+        "hour": 9,
+        "minute": 41,
+        "format": 0,
+        "scale": 100,
+        "brightness": 100,
+        "background": true
+      },
+      "structural_pixels_over_10": 0,
+      "fraction_structural_of_active": 0.0,
+      "mean_absolute_error_0_255": 0.479784126984127,
+      "pixels_over_10": 1951,
+      "active_pixels": 711074,
+      "fraction_over_10_of_active": 0.002743736938771492
+    },
+    {
+      "case": {
+        "width": 700,
+        "height": 1350,
+        "hour": 23,
+        "minute": 1,
+        "format": 0,
+        "scale": 100,
+        "brightness": 100,
+        "background": true
+      },
+      "structural_pixels_over_10": 0,
+      "fraction_structural_of_active": 0.0,
+      "mean_absolute_error_0_255": 0.4983216931216931,
+      "pixels_over_10": 1430,
+      "active_pixels": 711074,
+      "fraction_over_10_of_active": 0.0020110424512779263
+    },
+    {
+      "case": {
+        "width": 1920,
+        "height": 1080,
+        "hour": 0,
+        "minute": 0,
+        "format": 0,
+        "scale": 100,
+        "brightness": 100,
+        "background": true
+      },
+      "structural_pixels_over_10": 11,
+      "fraction_structural_of_active": 7.63969530117068e-06,
+      "mean_absolute_error_0_255": 0.7897092013888889,
+      "pixels_over_10": 17350,
+      "active_pixels": 1439848,
+      "fraction_over_10_of_active": 0.012049883043210117
+    },
+    {
+      "case": {
+        "width": 1920,
+        "height": 1080,
+        "hour": 12,
+        "minute": 0,
+        "format": 0,
+        "scale": 75,
+        "brightness": 75,
+        "background": true
+      },
+      "structural_pixels_over_10": 13,
+      "fraction_structural_of_active": 1.6040689058645993e-05,
+      "mean_absolute_error_0_255": 0.2855107060185185,
+      "pixels_over_10": 11413,
+      "active_pixels": 810439,
+      "fraction_over_10_of_active": 0.014082491094332825
+    },
+    {
+      "case": {
+        "width": 1080,
+        "height": 1920,
+        "hour": 1,
+        "minute": 21,
+        "format": 2,
+        "scale": 100,
+        "brightness": 50,
+        "background": true
+      },
+      "structural_pixels_over_10": 1,
+      "fraction_structural_of_active": 6.942409932644739e-07,
+      "mean_absolute_error_0_255": 0.36000868055555557,
+      "pixels_over_10": 10670,
+      "active_pixels": 1440422,
+      "fraction_over_10_of_active": 0.007407551398131936
+    },
+    {
+      "case": {
+        "width": 640,
+        "height": 360,
+        "hour": 1,
+        "minute": 31,
+        "format": 1,
+        "scale": 50,
+        "brightness": 100,
+        "background": true
+      },
+      "structural_pixels_over_10": 18,
+      "fraction_structural_of_active": 0.00044143613890523835,
+      "mean_absolute_error_0_255": 0.31090277777777775,
+      "pixels_over_10": 1460,
+      "active_pixels": 40776,
+      "fraction_over_10_of_active": 0.03580537571120267
+    },
+    {
+      "case": {
+        "width": 1440,
+        "height": 900,
+        "hour": 21,
+        "minute": 51,
+        "format": 2,
+        "scale": 100,
+        "brightness": 100,
+        "background": false
+      },
+      "structural_pixels_over_10": 0,
+      "fraction_structural_of_active": 0.0,
+      "mean_absolute_error_0_255": 0.4941327160493827,
+      "pixels_over_10": 11667,
+      "active_pixels": 255651,
+      "fraction_over_10_of_active": 0.0456364340448502
+    },
+    {
+      "case": {
+        "width": 900,
+        "height": 1440,
+        "hour": 13,
+        "minute": 11,
+        "format": 0,
+        "scale": 75,
+        "brightness": 75,
+        "background": false
+      },
+      "structural_pixels_over_10": 3,
+      "fraction_structural_of_active": 3.467767104761244e-05,
+      "mean_absolute_error_0_255": 0.07888117283950617,
+      "pixels_over_10": 3029,
+      "active_pixels": 86511,
+      "fraction_over_10_of_active": 0.03501288853440603
+    },
+    {
+      "case": {
+        "width": 1920,
+        "height": 1080,
+        "hour": 23,
+        "minute": 59,
+        "format": 2,
+        "scale": 100,
+        "brightness": 100,
+        "background": true
+      },
+      "structural_pixels_over_10": 3,
+      "fraction_structural_of_active": 2.0835532639556397e-06,
+      "mean_absolute_error_0_255": 0.837758487654321,
+      "pixels_over_10": 17201,
+      "active_pixels": 1439848,
+      "fraction_over_10_of_active": 0.011946399897766986
+    },
+    {
+      "case": {
+        "width": 1350,
+        "height": 700,
+        "hour": 12,
+        "minute": 0,
+        "previous": {
+          "hour": 11,
+          "minute": 59
+        },
+        "progress": 0.13636363636363635,
+        "format": 0,
+        "scale": 100,
+        "brightness": 100,
+        "background": true
+      },
+      "structural_pixels_over_10": 0,
+      "fraction_structural_of_active": 0.0,
+      "mean_absolute_error_0_255": 0.4997777777777778,
+      "pixels_over_10": 1811,
+      "active_pixels": 713594,
+      "fraction_over_10_of_active": 0.0025378576613592605
+    },
+    {
+      "case": {
+        "width": 1350,
+        "height": 700,
+        "hour": 12,
+        "minute": 0,
+        "previous": {
+          "hour": 11,
+          "minute": 59
+        },
+        "progress": 0.36363636363636365,
+        "format": 0,
+        "scale": 100,
+        "brightness": 100,
+        "background": true
+      },
+      "structural_pixels_over_10": 20,
+      "fraction_structural_of_active": 2.783452929027517e-05,
+      "mean_absolute_error_0_255": 0.4169671957671957,
+      "pixels_over_10": 1904,
+      "active_pixels": 718532,
+      "fraction_over_10_of_active": 0.0026498471884341965
+    },
+    {
+      "case": {
+        "width": 1350,
+        "height": 700,
+        "hour": 12,
+        "minute": 0,
+        "previous": {
+          "hour": 11,
+          "minute": 59
+        },
+        "progress": 0.6363636363636364,
+        "format": 0,
+        "scale": 100,
+        "brightness": 100,
+        "background": true
+      },
+      "structural_pixels_over_10": 0,
+      "fraction_structural_of_active": 0.0,
+      "mean_absolute_error_0_255": 0.3950899470899471,
+      "pixels_over_10": 2591,
+      "active_pixels": 717258,
+      "fraction_over_10_of_active": 0.0036123682133904398
+    },
+    {
+      "case": {
+        "width": 1350,
+        "height": 700,
+        "hour": 12,
+        "minute": 0,
+        "previous": {
+          "hour": 11,
+          "minute": 59
+        },
+        "progress": 0.8787878787878788,
+        "format": 0,
+        "scale": 100,
+        "brightness": 100,
+        "background": true
+      },
+      "structural_pixels_over_10": 0,
+      "fraction_structural_of_active": 0.0,
+      "mean_absolute_error_0_255": 0.6004455026455027,
+      "pixels_over_10": 2809,
+      "active_pixels": 713242,
+      "fraction_over_10_of_active": 0.003938354723922595
+    }
+  ]
+}

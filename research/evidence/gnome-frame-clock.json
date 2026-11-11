@@ -1,0 +1,120 @@
+{
+  "environment": {
+    "os": "Ubuntu 26.04 container",
+    "gnome": "50.1",
+    "mutter": "50.1",
+    "session": "headless Wayland",
+    "monitor": "1920x1080",
+    "renderer": "surfaceless software",
+    "forceAnimations": true,
+    "controlledExtraRepaintLoadMs": 25
+  },
+  "scope": "Live GNOME Shell compositor after-paint observations after forcing a cached minute mismatch; preview is opened through the same GSettings token used by the app. Controlled load models a repaint exceeding the old 16 ms timer budget. Not a physical-monitor or GPU test.",
+  "baseline_0_3_1": {
+    "shell": "50.1",
+    "backend": "headless Wayland, software renderer",
+    "addedPaintLoadMs": 25,
+    "drawn": [
+      0.09726060606060606,
+      0.20242424242424242,
+      0.32096363636363634,
+      0.42746969696969694,
+      0.5689575757575758,
+      0.6725515151515151,
+      0.7856636363636363,
+      0.904269696969697,
+      1,
+      1
+    ],
+    "presented": [
+      1
+    ],
+    "distinctIntermediatePresented": 0,
+    "overlayClosed": true
+  },
+  "frame_clock_fix": {
+    "shell": "50.1",
+    "backend": "headless Wayland, software renderer",
+    "addedPaintLoadMs": 25,
+    "drawn": [
+      0,
+      0.296969696969697,
+      0.5151515151515151,
+      0.6727272727272727,
+      0.8181818181818182,
+      0.9515151515151515,
+      1,
+      1
+    ],
+    "presented": [
+      0,
+      0.296969696969697,
+      0.5151515151515151,
+      0.6727272727272727,
+      0.8181818181818182,
+      0.9515151515151515,
+      1
+    ],
+    "distinctIntermediatePresented": 5,
+    "overlayClosed": true
+  },
+  "gtk_preview_handler": {
+    "shell": "50.1",
+    "backend": "headless Wayland, software renderer",
+    "addedPaintLoadMs": 25,
+    "drawn": [
+      0,
+      0.12424242424242424,
+      0.4696969696969697,
+      0.6878787878787879,
+      0.8333333333333334,
+      0.9939393939393939,
+      1,
+      1
+    ],
+    "presented": [
+      0,
+      0.12424242424242424,
+      0.4696969696969697,
+      0.6878787878787879,
+      0.8333333333333334,
+      0.9939393939393939,
+      1
+    ],
+    "distinctIntermediatePresented": 5,
+    "overlayClosed": true,
+    "entryPoint": "Actual Preferences.preview GTK handler with active GNOME extension"
+  },
+  "implementation_sha256": {
+    "native/app.py": "0cf48c9656e321aa10810ca38638d78b79161d334d7542042abcb377152a0589",
+    "extension/extension.js": "aee3aab4d697d8434900c60f4726d1f3239fd2a65d88a3700ca43148ac3927f8"
+  },
+  "installed_debian_package": {
+    "version": "0.3.2",
+    "status": "install ok installed",
+    "sha256": "a1eff3d7ab1247497cd62a7bb324aceb61238a025331cd42c948c4c5a0f3c25d",
+    "preview": {
+      "shell": "50.1",
+      "backend": "headless Wayland, software renderer",
+      "addedPaintLoadMs": 25,
+      "drawn": [
+        0,
+        0.2636363636363636,
+        0.6515151515151515,
+        0.8303030303030303,
+        1,
+        1
+      ],
+      "presented": [
+        0,
+        0.2636363636363636,
+        0.6515151515151515,
+        0.8303030303030303,
+        1
+      ],
+      "distinctIntermediatePresented": 3,
+      "overlayClosed": true,
+      "entryPoint": "Actual Preferences.preview GTK handler with active GNOME extension"
+    }
+  }
+}
