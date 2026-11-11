@@ -6,6 +6,14 @@ An independent, open-source-ready implementation of a split-flap clock for Ubunt
 
 > **Status:** Pre-release 0.4.0 · GNOME Shell **50** / Ubuntu **26.04** target · Maintainer review and license selection required before public extension submission. Not affiliated with Fliqlo or its creator.
 
+## Screenshots
+
+Real screenshots captured from the **v0.4.0 native GTK application** in an Ubuntu Xvfb session. The GNOME Shell extension's Preferences screen may differ.
+
+| Appearance · Light | Screensaver · Light | Appearance · Dark |
+| :---: | :---: | :---: |
+| ![GTK appearance settings with a live flip-clock preview](docs/assets/appearance-light.png) | ![GTK screensaver settings with idle and monitor controls](docs/assets/screensaver-light.png) | ![GTK appearance settings in dark mode](docs/assets/appearance-dark.png) |
+
 ## Highlights
 
 - Split-flap clock with a 330 ms flip transition and an optional reduced-motion mode.
