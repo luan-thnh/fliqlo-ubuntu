@@ -42,6 +42,50 @@ export default class FliqloPreferences extends ExtensionPreferences {
             'Animate the digits when the minute changes.');
         appearance.add(display);
 
+        const clockFace = new Adw.PreferencesGroup({
+            title: 'Clock face',
+            description: 'Change the card and digit colors independently of your wallpaper.',
+        });
+        this._addSwitch(clockFace, settings, 'flap-colors-enabled', 'Custom clock colors',
+            'Use your own colors for the two flip-clock cards.');
+        const clockColorRow = (title, key) => {
+            const row = new Adw.ActionRow({title});
+            const dialog = new Gtk.ColorDialog();
+            const picker = new Gtk.ColorDialogButton({dialog, valign: Gtk.Align.CENTER});
+            const update = () => {
+                const rgba = new Gdk.RGBA();
+                rgba.parse(settings.get_string(key));
+                picker.set_rgba(rgba);
+            };
+            picker.connect('notify::rgba', () => {
+                const c = picker.get_rgba();
+                const hex = '#' + [c.red, c.green, c.blue].map(channel =>
+                    Math.round(channel * 255).toString(16).padStart(2, '0')).join('');
+                if (hex !== settings.get_string(key)) {
+                    settings.set_string(key, hex);
+                    settings.set_boolean('flap-colors-enabled', true);
+                }
+            });
+            settings.connect('changed::' + key, update);
+            update();
+            row.add_suffix(picker);
+            clockFace.add(row);
+        };
+        clockColorRow('Card background color', 'flap-background-color');
+        clockColorRow('Digit and AM/PM color', 'flap-digit-color');
+        const resetColors = new Adw.ActionRow({
+            title: 'Reset clock colors',
+            subtitle: 'Return to the classic Fliqlo-style gray-on-black card gradient.',
+        });
+        const resetColorsButton = new Gtk.Button({label: 'Reset colors', valign: Gtk.Align.CENTER});
+        resetColorsButton.connect('clicked', () => {
+            for (const key of ['flap-colors-enabled', 'flap-background-color', 'flap-digit-color'])
+                settings.reset(key);
+        });
+        resetColors.add_suffix(resetColorsButton);
+        clockFace.add(resetColors);
+        appearance.add(clockFace);
+
         const background = new Adw.PreferencesGroup({
             title: 'Background',
             description: 'Use the classic black backdrop, a solid color, or a local image. Images are not uploaded.',
@@ -239,6 +283,24 @@ export default class FliqloPreferences extends ExtensionPreferences {
         });
         typography.add(fontNote);
         appearance.add(typography);
+        const restore = new Adw.PreferencesGroup({title: 'Restore defaults'});
+        const resetAppearance = new Adw.ActionRow({
+            title: 'Reset appearance',
+            subtitle: 'Restore original colors, font, size and wallpaper display. Your photo library stays saved.',
+        });
+        const restoreButton = new Gtk.Button({label: 'Reset Appearance', valign: Gtk.Align.CENTER});
+        restoreButton.connect('clicked', () => {
+            for (const key of [
+                'time-format', 'scale', 'brightness', 'background', 'flip-animation',
+                'font-family', 'flap-colors-enabled', 'flap-background-color', 'flap-digit-color',
+                'background-mode', 'background-color', 'background-opacity',
+                'background-fit', 'background-dim', 'background-slideshow',
+                'background-slideshow-seconds',
+            ]) settings.reset(key);
+        });
+        resetAppearance.add_suffix(restoreButton);
+        restore.add(resetAppearance);
+        appearance.add(restore);
         window.add(appearance);
 
         const screensaver = new Adw.PreferencesPage({

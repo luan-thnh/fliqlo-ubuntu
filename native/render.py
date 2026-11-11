@@ -21,18 +21,37 @@ def rounded(cr, x, y, width, height, radius):
     cr.close_path()
 
 
+def hex_rgb(value, fallback):
+    """Safely parse the six-digit CSS color used for custom flip cards."""
+    if isinstance(value, str) and re.fullmatch(r'#[0-9A-Fa-f]{6}', value):
+        return tuple(int(value[i:i + 2], 16) / 255 for i in (1, 3, 5))
+    return fallback
+
+
 def card(cr, value, period, options, offset, brightness):
     if options['background']:
         for inset, top, bottom in [(0, 22, 12), (1, 17, 11)]:
             gradient = cairo.LinearGradient(0, offset + inset, 0, offset + 600 - inset)
-            gradient.add_color_stop_rgb(0, *([top / 255 * brightness] * 3))
-            gradient.add_color_stop_rgb(1, *([bottom / 255 * brightness] * 3))
+            if options.get('flap_colors_enabled', False):
+                custom = hex_rgb(options.get('flap_background_color', ''), (0.09, 0.09, 0.09))
+                # Two subtle vertical shades preserve the split-flap shape.
+                top_rgb = tuple(min(1, component * brightness * (1.02 if inset else 1.10)) for component in custom)
+                bottom_rgb = tuple(min(1, component * brightness * (0.79 if inset else 0.85)) for component in custom)
+                gradient.add_color_stop_rgb(0, *top_rgb)
+                gradient.add_color_stop_rgb(1, *bottom_rgb)
+            else:
+                gradient.add_color_stop_rgb(0, *([top / 255 * brightness] * 3))
+                gradient.add_color_stop_rgb(1, *([bottom / 255 * brightness] * 3))
             rounded(cr, inset, offset + inset, 600 - inset * 2, 600 - inset * 2, 50 - inset)
             cr.set_source(gradient)
             cr.fill()
     original = options['font'] in ('Fliqlo', 'Fliqlo Bold')
     squeeze = 1 if original else .64
-    cr.set_source_rgba(brightness, brightness, brightness, .711)
+    if options.get('flap_colors_enabled', False):
+        digits = hex_rgb(options.get('flap_digit_color', ''), (1, 1, 1))
+        cr.set_source_rgba(*(component * brightness for component in digits), .95)
+    else:
+        cr.set_source_rgba(brightness, brightness, brightness, .711)
     text(cr, value, 600, options['font'], 300 + digit_indent(value), offset + 523, squeeze, True)
     if period:
         text(cr, period, 60, options['font'], 38, offset + (122.4 if period == 'AM' else 522.4), squeeze, False)

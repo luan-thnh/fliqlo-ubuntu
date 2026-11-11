@@ -14,6 +14,9 @@
     <key name="background-opacity" type="i"><default>85</default><range min="0" max="100"/><summary>Image opacity percentage</summary></key>
     <key name="background-fit" type="i"><default>0</default><range min="0" max="3"/><summary>Image fit: cover, contain, stretch or center</summary></key>
     <key name="background-dim" type="i"><default>15</default><range min="0" max="90"/><summary>Backdrop dark overlay percentage</summary></key>
+    <key name="flap-colors-enabled" type="b"><default>false</default><summary>Enable custom card and digit colors; false preserves original Fliqlo-style gradient</summary></key>
+    <key name="flap-background-color" type="s"><default>'#171717'</default><summary>Custom clock card background color</summary></key>
+    <key name="flap-digit-color" type="s"><default>'#e6e6e6'</default><summary>Custom digit and AM/PM text color</summary></key>
     <key name="flip-animation" type="b"><default>true</default><summary>Animate flips independently of desktop effects; disable for reduced motion</summary></key>
     <key name="multiple-displays" type="b"><default>true</default><summary>Show the clock on every monitor</summary></key>
     <key name="idle-enabled" type="b"><default>true</default><summary>Activate on idle</summary></key>

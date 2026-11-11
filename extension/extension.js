@@ -128,6 +128,9 @@ export default class FliqloExtension extends Extension {
             scale: this._settings.get_int('scale'),
             brightness: this._settings.get_int('brightness'),
             background: this._settings.get_boolean('background'),
+            flapColorsEnabled: this._settings.get_boolean('flap-colors-enabled'),
+            flapBackgroundColor: this._settings.get_string('flap-background-color'),
+            flapDigitColor: this._settings.get_string('flap-digit-color'),
             font: this._settings.get_string('font-family'),
             transparentBackdrop: backdropMode !== 0,
         };

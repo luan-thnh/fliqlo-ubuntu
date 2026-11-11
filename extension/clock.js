@@ -39,19 +39,34 @@ function rounded(cr, x, y, width, height, radius) {
     cr.arc(x + radius, y + radius, radius, Math.PI, Math.PI * 1.5);
     cr.closePath();
 }
+function hexRgb(value, fallback) {
+    if (typeof value !== 'string' || !/^#[0-9a-f]{6}$/i.test(value)) return fallback;
+    return [1, 3, 5].map(position => parseInt(value.slice(position, position + 2), 16) / 255);
+}
 function card(cr, value, period, options, offset, brightness, Cairo) {
     if (options.background) {
         for (const [inset, top, bottom] of [[0, 22, 12], [1, 17, 11]]) {
             const gradient = new Cairo.LinearGradient(0, offset + inset, 0, offset + 600 - inset);
-            gradient.addColorStopRGB(0, ...Array(3).fill(top / 255 * brightness));
-            gradient.addColorStopRGB(1, ...Array(3).fill(bottom / 255 * brightness));
+            if (options.flapColorsEnabled) {
+                const rgb = hexRgb(options.flapBackgroundColor, [0.09, 0.09, 0.09]);
+                gradient.addColorStopRGB(0, ...rgb.map(c => Math.min(1, c * brightness * (inset ? 1.02 : 1.10))));
+                gradient.addColorStopRGB(1, ...rgb.map(c => Math.min(1, c * brightness * (inset ? .79 : .85))));
+            } else {
+                gradient.addColorStopRGB(0, ...Array(3).fill(top / 255 * brightness));
+                gradient.addColorStopRGB(1, ...Array(3).fill(bottom / 255 * brightness));
+            }
             rounded(cr, inset, offset + inset, 600 - inset * 2, 600 - inset * 2, 50 - inset);
             cr.setSource(gradient); cr.fill();
         }
     }
     const original = ['Fliqlo', 'Fliqlo Bold'].includes(options.font);
     const squeeze = original ? 1 : .64;
-    cr.setSourceRGBA(brightness, brightness, brightness, .711);
+    if (options.flapColorsEnabled) {
+        const digits = hexRgb(options.flapDigitColor, [1, 1, 1]);
+        cr.setSourceRGBA(...digits.map(c => c * brightness), .95);
+    } else {
+        cr.setSourceRGBA(brightness, brightness, brightness, .711);
+    }
     text(cr, value, 600, options.font, 300 + digitIndent(value), offset + 523, squeeze, true, Cairo);
     if (period) text(cr, period, 60, options.font, 38, offset + (period === 'AM' ? 122.4 : 522.4), squeeze, false, Cairo);
 }

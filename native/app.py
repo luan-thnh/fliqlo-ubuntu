@@ -170,7 +170,10 @@ class Clock(Gtk.DrawingArea):
             background_opacity=self.config.get_int('background-opacity'),
             background_fit=self.config.get_int('background-fit'),
             background_dim=self.config.get_int('background-dim'),
-            background_pixbuf=self.background_pixbuf)
+            background_pixbuf=self.background_pixbuf,
+            flap_colors_enabled=self.config.get_boolean('flap-colors-enabled'),
+            flap_background_color=self.config.get_string('flap-background-color'),
+            flap_digit_color=self.config.get_string('flap-digit-color'))
         progress = self.progress
         paint(cr, self.get_allocated_width(), self.get_allocated_height(),
               self.current, self.previous, progress, options)
@@ -316,6 +319,45 @@ class Preferences(Gtk.ApplicationWindow):
         self.controls[key] = toggle
         return toggle
 
+    def _color_picker(self, key):
+        picker = Gtk.ColorButton()
+        picker.set_use_alpha(False)
+        self.controls[key] = picker
+
+        def update_from_settings(*_):
+            rgba = Gdk.RGBA()
+            rgba.parse(self.config.get_string(key))
+            picker.set_rgba(rgba)
+
+        def update_setting(button):
+            color = button.get_rgba()
+            chosen = '#%02x%02x%02x' % tuple(
+                round(value * 255) for value in (color.red, color.green, color.blue))
+            self.config.set_string(key, chosen)
+            self.config.set_boolean('flap-colors-enabled', True)
+
+        picker.connect('color-set', update_setting)
+        self.config.connect('changed::' + key, update_from_settings)
+        update_from_settings()
+        return picker
+
+    def reset_clock_colors(self, _button):
+        for key in ('flap-colors-enabled', 'flap-background-color', 'flap-digit-color'):
+            self.config.reset(key)
+
+    def reset_appearance(self, _button):
+        # Preserve the user's photo library and imported files; only reset its presentation.
+        keys = (
+            'time-format', 'scale', 'brightness', 'background', 'flip-animation',
+            'font-family', 'flap-colors-enabled', 'flap-background-color',
+            'flap-digit-color', 'background-mode', 'background-color',
+            'background-opacity', 'background-fit', 'background-dim',
+            'background-slideshow', 'background-slideshow-seconds',
+        )
+        for key in keys:
+            self.config.reset(key)
+        self.status.set_text('Appearance restored. Your photo library and files were kept.')
+
     def _scale(self, key, minimum=50, maximum=100):
         control = Gtk.Scale.new_with_range(Gtk.Orientation.HORIZONTAL, minimum, maximum, 1)
         control.set_size_request(168, -1)
@@ -420,6 +462,26 @@ class Preferences(Gtk.ApplicationWindow):
         for key in ('background-image-uris', 'background-selected-index', 'background-image-uri'):
             self.config.connect('changed::' + key, lambda *_: self._refresh_gallery())
         self._refresh_gallery()
+
+        face_controls = [
+            self._row('Custom clock colors', 'Customize the two flip cards and their digits.',
+                      self._switch('flap-colors-enabled')),
+            self._row('Card background', 'Color of the cards behind hour and minute digits.',
+                      self._color_picker('flap-background-color')),
+            self._row('Digit color', 'Applies to the hour, minute and AM/PM labels.',
+                      self._color_picker('flap-digit-color')),
+            self._row('Original colors', 'Restore the classic gray-on-black clock.',
+                      self._action('Reset colors', self.reset_clock_colors)),
+        ]
+        body.pack_start(self._section('Clock face', face_controls,
+            'Set the card and text colors independently of the fullscreen wallpaper.'),
+            False, False, 0)
+
+        body.pack_start(self._section('Restore defaults', [
+            self._row('Appearance defaults',
+                      'Reset colors, size, font and wallpaper display. Your photo library is kept.',
+                      self._action('Reset Appearance', self.reset_appearance)),
+        ]), False, False, 0)
 
         fonts = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         fonts.pack_start(self._action('Import…', self.import_font), False, False, 0)
