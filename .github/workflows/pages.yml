@@ -30,6 +30,7 @@ jobs:
       - name: Verify published docs match website sources
         run: |
           git diff --exit-code -- docs/index.html docs/styles.css docs/app.js docs/favicon.svg
+          node --check docs/app.js
           test -s docs/index.html
           test -s docs/assets/theme-ivory.png
           test -f docs/.nojekyll

@@ -6,7 +6,7 @@ no API calls, no external footage, no third-party music or packaged fonts.
 """
 import subprocess, wave
 from pathlib import Path
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageOps
 import numpy as np
 
 ROOT=Path(__file__).resolve().parents[1]
@@ -51,7 +51,9 @@ def logo(img,alpha=255):
 
 def image_card(img,src,x,y,w,h,alpha=1,r=20):
     if alpha<=0:return
-    layer=src.resize((int(w),int(h)),Image.Resampling.LANCZOS).convert('RGBA')
+    # Preserve real screenshot proportions; no stretched clocks or settings UI.
+    layer=ImageOps.fit(src,(int(w),int(h)),method=Image.Resampling.LANCZOS,
+        centering=(.5,.25 if src.height>src.width else .5)).convert('RGBA')
     mask=Image.new('L',layer.size,0)
     ImageDraw.Draw(mask).rounded_rectangle((0,0,w-1,h-1),radius=r,fill=int(alpha*255))
     layer.putalpha(mask)
