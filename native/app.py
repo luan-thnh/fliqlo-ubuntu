@@ -177,6 +177,10 @@ class Preferences(Gtk.ApplicationWindow):
         footer_label = Gtk.Label(label='Changes are saved automatically.', xalign=0)
         footer_label.get_style_context().add_class('dim-label')
         footer.pack_start(footer_label, True, True, 0)
+        signature = Gtk.Label(label='luan-thnh')
+        signature.get_style_context().add_class('creator-signature')
+        signature.set_tooltip_text('Created by luan-thnh')
+        footer.pack_end(signature, False, False, 0)
         layout.pack_end(footer, False, False, 0)
 
         self.refresh_status()

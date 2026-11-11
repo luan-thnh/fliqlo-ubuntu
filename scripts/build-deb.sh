@@ -16,7 +16,7 @@ cp "$ROOT"/extension/schemas/*.xml "$EXT/schemas/"
 glib-compile-schemas --strict "$EXT/schemas"
 cp "$ROOT/packaging/fliqlo-ubuntu.desktop" "$STAGE/usr/share/applications/"
 cp "$ROOT/packaging/fliqlo-ubuntu.svg" "$STAGE/usr/share/icons/hicolor/scalable/apps/"
-cp "$ROOT/README.md" "$STAGE/usr/share/doc/fliqlo-ubuntu/"
+cp "$ROOT/README.md" "$ROOT/LICENSE" "$STAGE/usr/share/doc/fliqlo-ubuntu/"
 cp "$ROOT/THIRD_PARTY.md" "$STAGE/usr/share/doc/fliqlo-ubuntu/copyright"
 cat > "$STAGE/usr/bin/fliqlo-ubuntu" <<'LAUNCHER'
 #!/bin/sh

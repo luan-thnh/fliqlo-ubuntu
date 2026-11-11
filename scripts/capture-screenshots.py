@@ -21,6 +21,7 @@ CASES = [
     ("appearance-light.png", "appearance", False),
     ("screensaver-light.png", "screensaver", False),
     ("appearance-dark.png", "appearance", True),
+    ("preview-fullscreen.png", "preview", False),
 ]
 
 def update_readme():
@@ -28,11 +29,16 @@ def update_readme():
     content = readme.read_text(encoding="utf-8")
     gallery = """## Screenshots
 
-Real screenshots captured from the **v0.4.0 native GTK application** in an Ubuntu Xvfb session. The GNOME Shell extension's Preferences screen may differ.
+Screenshots captured from the **native GTK app on Ubuntu with Xvfb**. The GNOME Shell extension's Preferences may look different.
+
+<p align="center">
+  <img src="docs/assets/preview-fullscreen.png" width="880" alt="Real fullscreen flip-clock preview from the native GTK app">
+</p>
+<p align="center"><sub>Fullscreen preview — available via the Preview button in the app.</sub></p>
 
 | Appearance · Light | Screensaver · Light | Appearance · Dark |
 | :---: | :---: | :---: |
-| ![GTK appearance settings with a live flip-clock preview](docs/assets/appearance-light.png) | ![GTK screensaver settings with idle and monitor controls](docs/assets/screensaver-light.png) | ![GTK appearance settings in dark mode](docs/assets/appearance-dark.png) |
+| ![GTK appearance controls and clock preview](docs/assets/appearance-light.png) | ![GTK idle and monitor settings](docs/assets/screensaver-light.png) | ![GTK appearance settings in dark mode](docs/assets/appearance-dark.png) |
 
 """
     start = content.find("## Screenshots\n")
@@ -72,16 +78,28 @@ def main():
 
             filename, page, dark = CASES[index]
             theme.set_property("gtk-application-prefer-dark-theme", dark)
-            window.pages.set_visible_child_name(page)
+            theme.set_property("gtk-theme-name", "Adwaita-dark" if dark else "Adwaita")
+            if page == "preview":
+                window.pages.set_visible_child_name("appearance")
+                window.preview(None)  # Exercise the real fullscreen Preview action.
+            else:
+                window.pages.set_visible_child_name(page)
             window.queue_draw()
 
             def snapshot():
-                surface = window.get_window()
+                preview_window = None
+                if page == "preview":
+                    preview_window = next((w for w in app.get_windows()
+                                           if w is not window and w.get_title() == "Fliqlo — Preview"), None)
+                    if preview_window is None:
+                        raise RuntimeError("Preview action did not open a fullscreen window")
+                target_window = preview_window or window
+                surface = target_window.get_window()
                 if surface is None:
                     raise RuntimeError("GTK window has not been realized")
                 pixels = Gdk.pixbuf_get_from_window(
-                    surface, 0, 0, window.get_allocated_width(),
-                    window.get_allocated_height(),
+                    surface, 0, 0, target_window.get_allocated_width(),
+                    target_window.get_allocated_height(),
                 )
                 if pixels is None:
                     raise RuntimeError("GDK returned no pixels; run under X11/Xvfb")
@@ -91,6 +109,8 @@ def main():
                     f"Captured {target.relative_to(ROOT)} ({pixels.get_width()}x{pixels.get_height()})",
                     flush=True,
                 )
+                if preview_window is not None:
+                    preview_window.destroy()
                 GLib.timeout_add(200, capture, index + 1)
                 return GLib.SOURCE_REMOVE
 

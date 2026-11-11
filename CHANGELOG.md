@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.4.1 — release candidate
+
+- Added MIT LICENSE for independently written project code.
+- Added subtle luan-thnh signature in GTK settings.
+- Captured actual fullscreen GTK Preview for the README gallery.
+- Automated prerelease publishing in GitHub Actions after successful builds.
+
+**Still requires manual validation** on a real GNOME 50 / Wayland desktop before submission to GNOME Extensions.
+
 ## 0.4.0 — release candidate
 
 - Reorganized source, historical evidence, and English-language documentation; removed the tracked prebuilt Debian package from the source tree.

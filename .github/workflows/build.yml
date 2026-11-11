@@ -1,10 +1,13 @@
-name: Check and package GNOME extension + Debian app
+name: Test, package and publish Fliqlo Ubuntu
 on:
   push:
+    branches: [main]
   pull_request:
   workflow_dispatch:
+
 permissions:
   contents: read
+
 jobs:
   build:
     runs-on: ubuntu-24.04
@@ -25,3 +28,47 @@ jobs:
         with:
           name: fliqlo-ubuntu-release-candidates
           path: dist/*
+          if-no-files-found: error
+
+  release:
+    name: Publish GitHub prerelease
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    concurrency:
+      group: fliqlo-ubuntu-release
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: fliqlo-ubuntu-release-candidates
+          path: dist
+      - name: Publish release for VERSION if missing
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(tr -d '\r\n' < VERSION)"
+          tag="v${version}"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "Release $tag already exists; skipping to avoid overwriting it."
+            exit 0
+          fi
+          test -s "dist/fliqlo-ubuntu_${version}_all.deb"
+          test -s "dist/fliqlo-ubuntu@luan-thnh-v${version}.zip"
+          test -s "dist/fliqlo-ubuntu@luan-thnh-v${version}.zip.sha256"
+          test -s dist/SHA256SUMS
+          gh release create "$tag" \
+            "dist/fliqlo-ubuntu_${version}_all.deb" \
+            "dist/fliqlo-ubuntu@luan-thnh-v${version}.zip" \
+            "dist/fliqlo-ubuntu@luan-thnh-v${version}.zip.sha256" \
+            dist/SHA256SUMS \
+            --target "$GITHUB_SHA" \
+            --title "Fliqlo Ubuntu $tag (pre-release)" \
+            --prerelease \
+            --generate-notes \
+            --notes "Unverified on a physical GNOME 50 desktop. Test on your system before publishing to GNOME Extensions. This project is unofficial and not affiliated with Fliqlo."

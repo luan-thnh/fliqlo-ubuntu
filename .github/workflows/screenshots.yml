@@ -5,6 +5,9 @@ on:
     branches: [main]
     paths:
       - 'scripts/capture-screenshots.py'
+      - 'native/app.py'
+      - 'native/style.css'
+      - 'VERSION'
       - '.github/workflows/screenshots.yml'
   workflow_dispatch:
 
@@ -26,7 +29,7 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add docs/assets/appearance-light.png docs/assets/screensaver-light.png docs/assets/appearance-dark.png README.md
+          git add docs/assets/appearance-light.png docs/assets/screensaver-light.png docs/assets/appearance-dark.png docs/assets/preview-fullscreen.png README.md
           if ! git diff --cached --quiet; then
             git commit -m 'docs: add real GTK settings screenshots'
             git push
