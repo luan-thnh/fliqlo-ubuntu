@@ -1,11 +1,13 @@
 """600-unit flap geometry and typography recovered from the supplied Windows app."""
 import math
+import re
 import cairo
 import gi
 gi.require_version("Pango", "1.0")
 gi.require_version("PangoCairo", "1.0")
+gi.require_version("Gdk", "3.0")
 gi.require_foreign("cairo")
-from gi.repository import Pango, PangoCairo
+from gi.repository import Pango, PangoCairo, Gdk
 from model import geometry, digit_indent, ease
 
 
@@ -117,9 +119,39 @@ def project_half(cr, value, period, bottom, factor, options, light):
     surface.finish()
 
 
-def paint(cr, width, height, current, previous, progress, options):
+def draw_backdrop(cr, width, height, options):
+    mode = options.get('background_mode', 0)
     cr.set_source_rgb(0, 0, 0)
     cr.paint()
+    if mode == 1:
+        color = options.get('background_color', '')
+        if re.fullmatch(r'#[0-9a-fA-F]{6}', color):
+            cr.set_source_rgb(*(int(color[n:n + 2], 16) / 255 for n in (1, 3, 5)))
+            cr.paint()
+    elif mode == 2 and options.get('background_pixbuf') is not None:
+        pixbuf = options['background_pixbuf']
+        iw, ih = pixbuf.get_width(), pixbuf.get_height()
+        fit = options.get('background_fit', 0)
+        if fit == 2:  # Stretch
+            sx, sy = width / iw, height / ih
+        elif fit == 3:  # Center
+            sx, sy = 1, 1
+        else:
+            scale = min(width / iw, height / ih) if fit == 1 else max(width / iw, height / ih)
+            sx = sy = scale
+        cr.save()
+        cr.translate((width - iw * sx) / 2, (height - ih * sy) / 2)
+        cr.scale(sx, sy)
+        Gdk.cairo_set_source_pixbuf(cr, pixbuf, 0, 0)
+        cr.paint_with_alpha(max(0, min(100, options.get('background_opacity', 85))) / 100)
+        cr.restore()
+    if mode != 0:
+        cr.set_source_rgba(0, 0, 0, max(0, min(90, options.get('background_dim', 15))) / 100)
+        cr.paint()
+
+
+def paint(cr, width, height, current, previous, progress, options):
+    draw_backdrop(cr, width, height, options)
     side, gap, x, y, vertical = geometry(width, height, options['scale'])
     for index, value in enumerate(current[:2]):
         cr.save()

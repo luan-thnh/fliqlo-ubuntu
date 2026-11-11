@@ -108,7 +108,14 @@ function projectHalf(cr, value, period, bottom, factor, options, light, api) {
 }
 
 export function paint(cr, width, height, current, previous, progress, options, Cairo) {
-    cr.setSourceRGB(0, 0, 0); cr.paint();
+    if (options.transparentBackdrop) {
+        cr.setOperator(Cairo.Operator.CLEAR);
+        cr.paint();
+        cr.setOperator(Cairo.Operator.OVER);
+    } else {
+        cr.setSourceRGB(0, 0, 0);
+        cr.paint();
+    }
     const {side, gap, x, y, vertical} = geometry(width, height, options.scale);
     ['hours', 'minutes'].forEach((key, index) => {
         cr.save(); cr.translate(x + (vertical ? 0 : index * (side + gap)), y + (vertical ? index * (side + gap) : 0)); cr.scale(side / 600, side / 600);

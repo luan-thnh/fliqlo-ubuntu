@@ -3,6 +3,7 @@
 from datetime import datetime
 from pathlib import Path
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -14,7 +15,7 @@ import gi
 gi.require_version('Gtk', '3.0')
 gi.require_version('Gdk', '3.0')
 gi.require_foreign('cairo')
-from gi.repository import Gdk, Gio, GLib, Gtk
+from gi.repository import Gdk, Gio, GLib, Gtk, GdkPixbuf
 from model import clock_parts, FLIP_SECONDS
 from render import paint
 from assets import windows_font
@@ -35,6 +36,33 @@ def settings():
     return Gio.Settings.new_full(schema, None, None)
 
 
+def clock_now():
+    """Use a fixed clock only for reproducible documentation screenshots."""
+    demo = os.environ.get('FLIQLO_DEMO_TIME', '')
+    if re.fullmatch(r'(?:[01][0-9]|2[0-3]):[0-5][0-9]', demo):
+        hour, minute = map(int, demo.split(':'))
+        return datetime(2026, 1, 1, hour, minute)
+    return datetime.now()
+
+
+def load_backdrop(config):
+    """Decode only local, reasonably sized images; never query the network."""
+    if config.get_int('background-mode') != 2:
+        return None
+    uri = config.get_string('background-image-uri')
+    if not uri.startswith('file:///'):
+        return None
+    path = Gio.File.new_for_uri(uri).get_path()
+    if not path or Path(path).suffix.lower() not in ('.png', '.jpg', '.jpeg', '.webp'):
+        return None
+    try:
+        if Path(path).stat().st_size > 16 * 1024 * 1024:
+            return None
+        return GdkPixbuf.Pixbuf.new_from_file_at_scale(path, 3840, 2160, True)
+    except (OSError, GLib.Error):
+        return None
+
+
 def extension_info():
     try:
         bus = Gio.bus_get_sync(Gio.BusType.SESSION, None)
@@ -50,7 +78,8 @@ class Clock(Gtk.DrawingArea):
     def __init__(self, config):
         super().__init__()
         self.config = config
-        self.current = clock_parts(datetime.now(), config.get_int('time-format'))
+        self.current = clock_parts(clock_now(), config.get_int('time-format'))
+        self.background_pixbuf = load_backdrop(config)
         self.previous = None
         self.started = 0
         self.progress = 1
@@ -65,7 +94,8 @@ class Clock(Gtk.DrawingArea):
             self.remove_tick_callback(self.animation)
             self.animation = 0
         self.progress = 1
-        self.current = clock_parts(datetime.now(), self.config.get_int('time-format'))
+        self.current = clock_parts(clock_now(), self.config.get_int('time-format'))
+        self.background_pixbuf = load_backdrop(self.config)
         self.previous = None
         self.queue_draw()
 
@@ -76,7 +106,7 @@ class Clock(Gtk.DrawingArea):
         self.config.disconnect(self.changed)
 
     def tick_clock(self):
-        current = clock_parts(datetime.now(), self.config.get_int('time-format'))
+        current = clock_parts(clock_now(), self.config.get_int('time-format'))
         if current != self.current:
             self.previous, self.current = self.current, current
             self.started = GLib.get_monotonic_time()
@@ -98,7 +128,13 @@ class Clock(Gtk.DrawingArea):
 
     def draw_clock(self, _widget, cr):
         options = {key: self.config.get_int(key) for key in ('scale', 'brightness')}
-        options.update(background=self.config.get_boolean('background'), font=self.config.get_string('font-family'))
+        options.update(background=self.config.get_boolean('background'), font=self.config.get_string('font-family'),
+            background_mode=self.config.get_int('background-mode'),
+            background_color=self.config.get_string('background-color'),
+            background_opacity=self.config.get_int('background-opacity'),
+            background_fit=self.config.get_int('background-fit'),
+            background_dim=self.config.get_int('background-dim'),
+            background_pixbuf=self.background_pixbuf)
         progress = self.progress
         paint(cr, self.get_allocated_width(), self.get_allocated_height(),
               self.current, self.previous, progress, options)
@@ -244,8 +280,8 @@ class Preferences(Gtk.ApplicationWindow):
         self.controls[key] = toggle
         return toggle
 
-    def _scale(self, key):
-        control = Gtk.Scale.new_with_range(Gtk.Orientation.HORIZONTAL, 50, 100, 1)
+    def _scale(self, key, minimum=50, maximum=100):
+        control = Gtk.Scale.new_with_range(Gtk.Orientation.HORIZONTAL, minimum, maximum, 1)
         control.set_size_request(168, -1)
         control.set_draw_value(True)
         control.set_value_pos(Gtk.PositionType.RIGHT)
@@ -288,6 +324,43 @@ class Preferences(Gtk.ApplicationWindow):
             self._row('Flip animation', 'Animate the digits when the minute changes.',
                       self._switch('flip-animation')),
         ]), False, False, 0)
+
+        mode = Gtk.ComboBoxText()
+        for name in ('None (black)', 'Solid color', 'Image'):
+            mode.append_text(name)
+        mode.set_size_request(178, -1)
+        self.config.bind('background-mode', mode, 'active', Gio.SettingsBindFlags.DEFAULT)
+        self.controls['background-mode'] = mode
+
+        color = Gtk.ColorButton()
+        color.set_use_alpha(False)
+        rgba = Gdk.RGBA()
+        rgba.parse(self.config.get_string('background-color'))
+        color.set_rgba(rgba)
+        def set_color(button):
+            picked = button.get_rgba()
+            self.config.set_string('background-color', '#%02x%02x%02x' % (
+                round(picked.red * 255), round(picked.green * 255), round(picked.blue * 255)))
+        color.connect('color-set', set_color)
+        self.controls['background-color'] = color
+
+        image_buttons = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+        image_buttons.pack_start(self._action('Choose image…', self.choose_backdrop), False, False, 0)
+        image_buttons.pack_start(self._action('Clear', self.clear_backdrop), False, False, 0)
+        fit = Gtk.ComboBoxText()
+        for name in ('Cover', 'Contain', 'Stretch', 'Center'):
+            fit.append_text(name)
+        fit.set_size_request(140, -1)
+        self.config.bind('background-fit', fit, 'active', Gio.SettingsBindFlags.DEFAULT)
+        self.controls['background-fit'] = fit
+        body.pack_start(self._section('Background', [
+            self._row('Backdrop', 'None keeps the classic black screensaver.', mode),
+            self._row('Color', 'Choose a solid color behind the clock.', color),
+            self._row('Image', 'Select a local PNG, JPEG, or WebP image.', image_buttons),
+            self._row('Image opacity', 'Blend the image with the black base.', self._scale('background-opacity', 0, 100)),
+            self._row('Image fit', 'How your image fills the screen.', fit),
+            self._row('Dark overlay', 'Improve clock contrast on bright images.', self._scale('background-dim', 0, 90)),
+        ], 'Your backdrop is kept locally. No image is uploaded.'), False, False, 0)
 
         fonts = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         fonts.pack_start(self._action('Import…', self.import_font), False, False, 0)
@@ -366,6 +439,34 @@ class Preferences(Gtk.ApplicationWindow):
             window.show_all()
             display = window.get_display()
             window.get_window().set_cursor(Gdk.Cursor.new_for_display(display, Gdk.CursorType.BLANK_CURSOR))
+
+    def choose_backdrop(self, _button):
+        chooser = Gtk.FileChooserDialog(title='Choose a background image', parent=self,
+            action=Gtk.FileChooserAction.OPEN)
+        chooser.add_buttons('Cancel', Gtk.ResponseType.CANCEL, 'Use Image', Gtk.ResponseType.OK)
+        files = Gtk.FileFilter()
+        files.set_name('Images (PNG, JPEG, WebP)')
+        for mime in ('image/png', 'image/jpeg', 'image/webp'):
+            files.add_mime_type(mime)
+        chooser.add_filter(files)
+        selected = chooser.get_filename() if chooser.run() == Gtk.ResponseType.OK else None
+        chooser.destroy()
+        if not selected:
+            return
+        path = Path(selected)
+        try:
+            if path.suffix.lower() not in ('.png', '.jpg', '.jpeg', '.webp'):
+                raise ValueError('Choose a PNG, JPEG or WebP image.')
+            if path.stat().st_size > 16 * 1024 * 1024:
+                raise ValueError('Image exceeds the 16 MiB limit.')
+            self.config.set_string('background-image-uri', Gio.File.new_for_path(str(path)).get_uri())
+            self.config.set_int('background-mode', 2)
+        except (OSError, ValueError) as error:
+            self.status.set_text('Unable to select background: ' + str(error))
+
+    def clear_backdrop(self, _button):
+        self.config.set_string('background-image-uri', '')
+        self.config.set_int('background-mode', 0)
 
     def reset_font(self, _button):
         self.config.set_string('font-family', 'DejaVu Sans')
