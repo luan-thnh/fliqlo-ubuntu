@@ -1,0 +1,53 @@
+name: Render cinematic product film
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/render-promo-video.py'
+      - '.github/workflows/promo-video.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fliqlo-promo
+  cancel-in-progress: true
+
+jobs:
+  render:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Install renderer dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y python3-pil python3-numpy ffmpeg
+      - name: Render film and poster from the actual project screenshots
+        run: /usr/bin/python3 scripts/render-promo-video.py
+      - name: Verify media
+        run: |
+          test -s docs/media/fliqlo-ubuntu-teaser.mp4
+          test -s docs/media/fliqlo-ubuntu-poster.jpg
+          ffprobe -v error -show_entries format=duration,size -of default=noprint_wrappers=1 docs/media/fliqlo-ubuntu-teaser.mp4
+          /usr/bin/python3 - <<'PY'
+          import json, subprocess
+          path='docs/media/fliqlo-ubuntu-teaser.mp4'
+          meta=json.loads(subprocess.check_output(['ffprobe','-v','quiet','-print_format','json','-show_streams',path]))
+          video=next(x for x in meta['streams'] if x['codec_type']=='video')
+          assert video['width']==1280 and video['height']==720
+          assert video['codec_name']=='h264'
+          assert len([x for x in meta['streams'] if x['codec_type']=='audio'])>0
+          PY
+      - name: Commit generated media
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/media/fliqlo-ubuntu-teaser.mp4 docs/media/fliqlo-ubuntu-poster.jpg
+          if ! git diff --cached --quiet; then
+            git commit -m 'assets(video): render cinematic Fliqlo Ubuntu product film'
+            git push origin HEAD:main
+          fi
