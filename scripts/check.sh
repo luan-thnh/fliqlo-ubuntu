@@ -3,7 +3,7 @@ set -eu
 ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 cd "$ROOT"
 printf '%s\n' '== Python syntax =='
-python3 -m compileall -q native tests
+python3 -m compileall -q native tests scripts
 printf '%s\n' '== JavaScript syntax and clock behavior =='
 for file in extension/*.js; do node --check "$file"; done
 node tests/clock.mjs

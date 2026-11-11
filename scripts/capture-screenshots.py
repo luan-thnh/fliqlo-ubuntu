@@ -42,7 +42,7 @@ def main():
 
         def capture(index):
             if index >= len(CASES):
-                        print("Captured all GTK settings screenshots", flush=True)
+                print("Captured all GTK settings screenshots", flush=True)
                 app.quit()
                 return GLib.SOURCE_REMOVE
 
