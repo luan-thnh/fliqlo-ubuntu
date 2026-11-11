@@ -134,6 +134,10 @@ export function paint(cr, width, height, current, previous, progress, options, C
     const {side, gap, x, y, vertical} = geometry(width, height, options.scale);
     ['hours', 'minutes'].forEach((key, index) => {
         cr.save(); cr.translate(x + (vertical ? 0 : index * (side + gap)), y + (vertical ? index * (side + gap) : 0)); cr.scale(side / 600, side / 600);
+        // Match the native rounded-card mask, including the black backing
+        // and projected flip animation, so no square corners show through.
+        rounded(cr, 0, 0, 600, 600, 50);
+        cr.clip();
         const frameOptions = {...options, unit: side / 600, yPhase: (y + (vertical ? index * (side + gap) : 0)) % 1};
         const period = index === 0 ? current.period : '';
         const changed = previous && (previous[key] !== current[key] || (index === 0 && previous.period !== period));

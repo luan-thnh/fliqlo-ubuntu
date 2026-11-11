@@ -176,6 +176,11 @@ def paint(cr, width, height, current, previous, progress, options):
         cr.save()
         cr.translate(x + (0 if vertical else index * (side + gap)), y + (index * (side + gap) if vertical else 0))
         cr.scale(side / 600, side / 600)
+        # Clip the *whole* clock card, including the black backing used during
+        # flip animation. Otherwise that backing leaks as square black corners
+        # around pale custom card colors (e.g. Ivory).
+        rounded(cr, 0, 0, 600, 600, 50)
+        cr.clip()
         options = dict(options, unit=side / 600, y_phase=(y + (index * (side + gap) if vertical else 0)) % 1)
         period = current[2] if index == 0 else ''
         changed = previous and (previous[index] != value or (index == 0 and previous[2] != period))

@@ -26,7 +26,24 @@ const cr = new Proxy({textExtents: value => ({width: value.length * 40, height: 
 for (const progress of [0, .25, .5, .75, 1]) paint(cr, 1920, 1080,
     parts(at(12, 0), 0), parts(at(11, 59), 0), progress,
     {scale: 100, brightness: 100, background: true, font: 'DejaVu Sans'}, api);
-console.log('Clock: time formats, noon/midnight, monitor bounds, lock guards and animation phases passed.');
+// The GJS renderer must apply the 50-unit rounded clip before rendering
+// the solid black half backing; these draw calls are exercised through the
+// same draw contract in both static and animated paths.
+const calls = [];
+const context = new Proxy({}, {get(_object, name) {
+    if (name === 'clip') return () => calls.push('clip');
+    if (name === 'arc') return () => calls.push('arc');
+    if (name === 'setSourceRGB') return () => calls.push('color');
+    return () => {};
+}});
+paint(context, 640, 360, parts(at(9, 41), 0), null, 1,
+    {scale: 100, brightness: 100, background: true, font: 'DejaVu Sans',
+     flapColorsEnabled: true, flapBackgroundColor: '#e8ddc9',
+     flapDigitColor: '#283347'}, api);
+assert(calls.indexOf('arc') >= 0 && calls.indexOf('clip') > calls.indexOf('arc'),
+    'rounded-card clipping must be applied before drawing the card');
+
+console.log('Clock: time formats, rounded-card mask, monitor bounds and animation phases passed.');
 
 assert.equal(FLIP_MS, 330);
 assert.deepEqual(geometry(700,1350,100), {side:600,gap:50,x:50,y:50,vertical:true});

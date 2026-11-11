@@ -87,6 +87,40 @@ class ClockTests(unittest.TestCase):
                                 flap_digit_color='not-a-color'))
         self.assertTrue(any(invalid))
 
+    def test_rounded_card_corners_reveal_the_actual_backdrop(self):
+        # Regression for bright custom cards showing rectangular black corners.
+        # Each pixel in the extreme corner is outside the rounded card and
+        # must match the surrounding backdrop, even during animated flips.
+        width, height = 640, 360
+        side, gap, x, y, vertical = geometry(width, height, 100)
+        self.assertFalse(vertical)
+        base = dict(scale=100, brightness=100, background=True,
+                    font='DejaVu Sans', flap_colors_enabled=True,
+                    flap_background_color='#e8ddc9',
+                    flap_digit_color='#283347', background_mode=1,
+                    background_color='#b9c6cf', background_dim=0)
+
+        def sample(data, px, py):
+            offset = (int(py) * width + int(px)) * 4
+            return bytes(data[offset:offset + 4])
+
+        for progress in (1, 0.25, 0.75):
+            surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, width, height)
+            context = cairo.Context(surface)
+            paint(context, width, height, ('9', '41', 'AM'),
+                  ('8', '40', 'AM') if progress < 1 else None,
+                  progress, base)
+            surface.flush()
+            data = surface.get_data()
+            reference = sample(data, 2, 2)  # Entirely outside any clock card
+            for card_left in (x, x + side + gap):
+                for px in (card_left + 2, card_left + side - 3):
+                    for py in (y + 2, y + side - 3):
+                        self.assertEqual(sample(data, px, py), reference,
+                            f'Exposed square corner at progress={progress}, {px}, {py}')
+            # Control pixel: center of the flap is a different color.
+            self.assertNotEqual(sample(data, x + side / 2, y + 10), reference)
+
     def test_cairo_animation(self):
         for progress in (0, .25, .5, .75, 1):
             surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 640, 360)
