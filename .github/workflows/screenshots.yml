@@ -1,11 +1,14 @@
-name: Capture real GTK screenshots
+name: Render sharp clock formats and capture GTK settings
 
 on:
   push:
     branches: [main]
     paths:
       - 'scripts/capture-screenshots.py'
+      - 'scripts/render-clock-formats.py'
       - 'native/app.py'
+      - 'native/render.py'
+      - 'native/model.py'
       - 'native/style.css'
       - 'VERSION'
       - '.github/workflows/screenshots.yml'
@@ -19,40 +22,51 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
-      - name: Install GTK and headless desktop dependencies
+      - name: Install GTK and Cairo/Pango rendering dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y python3-gi python3-cairo python3-gi-cairo gir1.2-gtk-3.0 libglib2.0-bin xvfb dbus-x11 python3-pil
-      - name: Capture running native application (light and fullscreen preview)
+          sudo apt-get install -y python3-gi python3-cairo python3-gi-cairo gir1.2-gtk-3.0 libglib2.0-bin xvfb dbus-x11 python3-pil fonts-dejavu-core
+      - name: Render all three clock modes at native resolution
+        run: /usr/bin/python3 scripts/render-clock-formats.py
+      - name: Capture actual GTK light settings
         run: xvfb-run -a -s '-screen 0 1440x1000x24' dbus-run-session -- /usr/bin/python3 scripts/capture-screenshots.py
-      - name: Capture native application in a fresh dark-theme session
+      - name: Capture actual GTK dark settings
         env:
           FLIQLO_SCREENSHOT_DARK: '1'
           GTK_THEME: 'Adwaita:dark'
         run: xvfb-run -a -s '-screen 0 1440x1000x24' dbus-run-session -- /usr/bin/python3 scripts/capture-screenshots.py
-      - name: Validate screenshots
-        run: |
-          test -s docs/assets/preview-fullscreen.png
-          if cmp -s docs/assets/appearance-light.png docs/assets/appearance-dark.png; then
-            echo '::error::Light and dark screenshots are identical'
-            exit 1
-          fi
-      - name: Validate fullscreen preview contains visible clock pixels
+      - name: Verify all formats are distinct and nonblank
         run: |
           /usr/bin/python3 - <<'PY'
+          import hashlib
+          from pathlib import Path
           from PIL import Image
-          picture = Image.open("docs/assets/preview-fullscreen.png").convert("RGB")
-          bright = sum(1 for r, g, b in picture.getdata() if max(r, g, b) > 90)
-          print(f"Fullscreen preview: {picture.width}x{picture.height}, {bright} bright pixels")
-          if bright < 500:
-              raise SystemExit("Fullscreen preview looks blank; refusing to publish screenshots")
+          folder = Path('docs/assets')
+          names = ['clock-format-12h.png', 'clock-format-24h-short.png', 'clock-format-24h-padded.png']
+          digests = []
+          for name in names:
+              path = folder / name
+              with Image.open(path) as png:
+                  if png.size != (1920, 1080):
+                      raise SystemExit(f'{name}: unexpected size {png.size}')
+                  image = png.convert('RGB')
+                  bright = sum(1 for pixel in image.getdata() if max(pixel) > 90)
+                  if bright < 5000:
+                      raise SystemExit(f'{name}: clock appears blank')
+              digests.append(hashlib.sha256(path.read_bytes()).hexdigest())
+              print(f'{name}: 1920x1080, {bright} bright pixels')
+          if len(set(digests)) != len(names):
+              raise SystemExit('Clock format images are duplicates')
+          if (folder / 'appearance-dark.png').read_bytes() == (folder / 'appearance-light.png').read_bytes():
+              raise SystemExit('Light and dark GTK settings screenshots are identical')
           PY
-      - name: Commit screenshots and README
+      - name: Commit generated screenshots
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add docs/assets/appearance-light.png docs/assets/screensaver-light.png docs/assets/appearance-dark.png docs/assets/preview-fullscreen.png README.md
+          git add docs/assets/clock-format-12h.png docs/assets/clock-format-24h-short.png docs/assets/clock-format-24h-padded.png
+          git add docs/assets/appearance-light.png docs/assets/screensaver-light.png docs/assets/appearance-dark.png
           if ! git diff --cached --quiet; then
-            git commit -m 'docs: add real GTK settings screenshots'
+            git commit -m 'docs: add crisp 12h and 24h renderer screenshots'
             git push
           fi

@@ -29,6 +29,7 @@ jobs:
           name: fliqlo-ubuntu-release-candidates
           path: dist/*
           if-no-files-found: error
+          retention-days: 2
 
   release:
     name: Publish GitHub prerelease
@@ -55,20 +56,30 @@ jobs:
           version="$(tr -d '\r\n' < VERSION)"
           tag="v${version}"
           if gh release view "$tag" >/dev/null 2>&1; then
-            echo "Release $tag already exists; skipping to avoid overwriting it."
-            exit 0
+            echo "Release $tag already exists; not overwriting artifacts."
+          else
+            test -s "dist/fliqlo-ubuntu_${version}_all.deb"
+            test -s "dist/fliqlo-ubuntu@luan-thnh-v${version}.zip"
+            test -s "dist/fliqlo-ubuntu@luan-thnh-v${version}.zip.sha256"
+            test -s dist/SHA256SUMS
+            gh release create "$tag" \
+              "dist/fliqlo-ubuntu_${version}_all.deb" \
+              "dist/fliqlo-ubuntu@luan-thnh-v${version}.zip" \
+              "dist/fliqlo-ubuntu@luan-thnh-v${version}.zip.sha256" \
+              dist/SHA256SUMS \
+              --target "$GITHUB_SHA" \
+              --title "Fliqlo Ubuntu $tag (pre-release)" \
+              --prerelease \
+              --generate-notes \
+              --notes "Unverified on a physical GNOME 50 desktop. Test on your system before publishing to GNOME Extensions. This project is unofficial and not affiliated with Fliqlo."
           fi
-          test -s "dist/fliqlo-ubuntu_${version}_all.deb"
-          test -s "dist/fliqlo-ubuntu@luan-thnh-v${version}.zip"
-          test -s "dist/fliqlo-ubuntu@luan-thnh-v${version}.zip.sha256"
-          test -s dist/SHA256SUMS
-          gh release create "$tag" \
-            "dist/fliqlo-ubuntu_${version}_all.deb" \
-            "dist/fliqlo-ubuntu@luan-thnh-v${version}.zip" \
-            "dist/fliqlo-ubuntu@luan-thnh-v${version}.zip.sha256" \
-            dist/SHA256SUMS \
-            --target "$GITHUB_SHA" \
-            --title "Fliqlo Ubuntu $tag (pre-release)" \
-            --prerelease \
-            --generate-notes \
-            --notes "Unverified on a physical GNOME 50 desktop. Test on your system before publishing to GNOME Extensions. This project is unofficial and not affiliated with Fliqlo."
+          # Delete only older version-numbered releases, never unrelated or newer tags.
+          while IFS= read -r previous_tag; do
+            [[ -n "$previous_tag" && "$previous_tag" != "$tag" ]] || continue
+            [[ "$previous_tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || continue
+            latest="$(printf '%s\n%s\n' "$previous_tag" "$tag" | sort -V | tail -n 1)"
+            if [[ "$latest" == "$tag" ]]; then
+              echo "Deleting older release and tag: $previous_tag"
+              gh release delete "$previous_tag" --yes --cleanup-tag
+            fi
+          done < <(gh release list --limit 200 --json tagName --jq '.[].tagName')

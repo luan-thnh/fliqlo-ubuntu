@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.4.2 — release candidate
+
+- Replaced the blurry, window-captured fullscreen README image with three crisp 1920×1080 renders of the real Cairo/Pango clock for 12-hour, 24-hour and zero-padded 24-hour formats.
+- Show all three clock modes side-by-side in README; retain native GTK Settings screenshots.
+- Added deterministic, pixel-checked rendering in CI and automatic cleanup of older project GitHub releases after successful publication.
+- Reduced temporary Actions artifact retention.
+
+**Still requires manual testing** on a physical Ubuntu GNOME 50 / Wayland desktop.
+
 ## 0.4.1 — release candidate
 
 - Added MIT LICENSE for independently written project code.

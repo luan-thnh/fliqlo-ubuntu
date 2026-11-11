@@ -33,7 +33,8 @@ class RepositoryTests(unittest.TestCase):
         self.assertIn('status-banner', css)
         self.assertIn('creator-signature', source)
         self.assertIn('.creator-signature', css)
-        self.assertIn('window.preview(None)', (ROOT / 'scripts/capture-screenshots.py').read_text())
+        self.assertIn('def preview(self, _button):', source)
+        self.assertIn('clock_parts(SAMPLE, format_id)', (ROOT / 'scripts/render-clock-formats.py').read_text())
         self.assertIn('@theme_bg_color', css)
 
     def test_release_files(self):
@@ -44,6 +45,8 @@ class RepositoryTests(unittest.TestCase):
         self.assertTrue((ROOT / 'native/style.css').is_file())
         self.assertIn('MIT License', (ROOT / 'LICENSE').read_text())
         self.assertIn('gh release create', (ROOT / '.github/workflows/build.yml').read_text())
+        self.assertIn('gh release delete', (ROOT / '.github/workflows/build.yml').read_text())
+        self.assertIn('clock-format-24h-padded.png', (ROOT / 'README.md').read_text())
         self.assertIn('style.css', (ROOT / 'scripts/build-deb.sh').read_text())
 
 if __name__ == '__main__':
