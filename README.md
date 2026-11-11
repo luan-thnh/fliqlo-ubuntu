@@ -23,6 +23,24 @@ Native GTK preferences captured on Ubuntu with Xvfb. The GNOME Shell extension P
 | :---: | :---: | :---: |
 | ![GTK appearance controls and embedded clock](docs/assets/appearance-light.png) | ![GTK idle and monitor settings](docs/assets/screensaver-light.png) | ![GTK appearance settings in dark mode](docs/assets/appearance-dark.png) |
 
+### Customize the clock face
+
+The **flip-card background** and **digit/AM-PM colors** can be changed separately from the full-screen wallpaper. The original black-and-gray clock is still the default.
+
+| Classic (default) | Ocean | Rose |
+| :---: | :---: | :---: |
+| ![Original Fliqlo-style clock](docs/assets/theme-classic.png) | ![Ocean blue flip cards and icy-white digits](docs/assets/theme-ocean.png) | ![Rose flip cards and soft pink digits](docs/assets/theme-rose.png) |
+| Ivory | Forest | Amber |
+| ![Warm ivory cards with dark digits](docs/assets/theme-ivory.png) | ![Forest-green cards with mint digits](docs/assets/theme-forest.png) | ![Amber card background with golden digits](docs/assets/theme-amber.png) |
+
+*All six samples are reproducible renders from the app's **real Cairo/Pango clock**, at 9:41 AM. They demonstrate possible color settings, not bundled wallpapers or one-click presets.*
+
+#### Clock color settings
+
+<img src="docs/assets/appearance-clock-face.png" alt="GTK Clock face settings showing custom flip-card and digit colors, with Reset colors" width="650">
+
+In **Appearance → Clock face**, enable **Custom clock colors**, choose the card background and the digit color, or press **Reset colors** to restore the original clock. **Reset Appearance** also resets the wallpaper display, font, size and color options, without removing photos from your library.
+
 ### Custom photo library
 
 Add multiple personal backgrounds and pick the active one, or turn on automatic cycling.
@@ -39,6 +57,7 @@ Add multiple personal backgrounds and pick the active one, or turn on automatic 
 - Extension-native Preferences: edit settings without installing the standalone app.
 - 12-hour and two 24-hour formats, adjustable size and brightness, and multi-monitor support.
 - Configurable local backdrops: black, solid colors, or a **20-photo library** (PNG/JPEG/WebP), with preview thumbnails, active-image selection, optional timed slideshow, opacity, fit, and dim overlay.
+- Independent flip-card and digit/AM-PM color controls, with **Reset colors** and **Reset Appearance** actions that preserve personal photo files.
 - Optional import of a font from a file **you legally possess**; proprietary Fliqlo assets are not distributed.
 
 ## Personalize the background

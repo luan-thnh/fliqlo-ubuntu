@@ -6,6 +6,7 @@ on:
     paths:
       - 'scripts/capture-screenshots.py'
       - 'scripts/render-clock-formats.py'
+      - 'scripts/render-custom-themes.py'
       - 'native/app.py'
       - 'native/render.py'
       - 'native/model.py'
@@ -31,6 +32,8 @@ jobs:
           sudo apt-get install -y python3-gi python3-cairo python3-gi-cairo gir1.2-gtk-3.0 libglib2.0-bin xvfb dbus-x11 python3-pil fonts-dejavu-core
       - name: Render all three clock modes at native resolution
         run: /usr/bin/python3 scripts/render-clock-formats.py
+      - name: Render six clock color themes at 09:41
+        run: /usr/bin/python3 scripts/render-custom-themes.py
       - name: Capture actual GTK light settings at 09:41
         run: xvfb-run -a -s '-screen 0 1440x1000x24' dbus-run-session -- /usr/bin/python3 scripts/capture-screenshots.py
       - name: Capture actual GTK dark settings
@@ -60,6 +63,19 @@ jobs:
               print(f'{name}: 1920x1080, {bright} bright pixels')
           if len(set(digests)) != len(names):
               raise SystemExit('Clock format images are duplicates')
+          themes = ['theme-classic.png','theme-ocean.png','theme-rose.png',
+                    'theme-ivory.png','theme-forest.png','theme-amber.png']
+          theme_hashes = []
+          for name in themes:
+              path = folder / name
+              with Image.open(path) as img:
+                  if img.size != (1600, 900):
+                      raise SystemExit(f'{name}: wrong preview resolution')
+              theme_hashes.append(hashlib.sha256(path.read_bytes()).hexdigest())
+          if len(set(theme_hashes)) != len(themes):
+              raise SystemExit('Custom clock color demo previews must be distinct')
+          if not (folder / 'appearance-clock-face.png').is_file():
+              raise SystemExit('Missing Clock Face settings screenshot')
           if not (folder / 'appearance-background.png').is_file():
               raise SystemExit('Missing Background settings screenshot')
           if (folder / 'appearance-dark.png').read_bytes() == (folder / 'appearance-light.png').read_bytes():
@@ -70,7 +86,8 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add docs/assets/clock-format-12h.png docs/assets/clock-format-24h-short.png docs/assets/clock-format-24h-padded.png
-          git add docs/assets/appearance-light.png docs/assets/appearance-background.png docs/assets/screensaver-light.png docs/assets/appearance-dark.png
+          git add docs/assets/theme-*.png
+          git add docs/assets/appearance-light.png docs/assets/appearance-clock-face.png docs/assets/appearance-background.png docs/assets/screensaver-light.png docs/assets/appearance-dark.png
           if ! git diff --cached --quiet; then
             git commit -m 'docs: add crisp 12h and 24h renderer screenshots'
             git push

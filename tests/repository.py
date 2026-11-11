@@ -47,6 +47,13 @@ class RepositoryTests(unittest.TestCase):
         self.assertIn('gh release create', (ROOT / '.github/workflows/build.yml').read_text())
         self.assertIn('gh release delete', (ROOT / '.github/workflows/build.yml').read_text())
         self.assertIn('clock-format-24h-padded.png', (ROOT / 'README.md').read_text())
+        self.assertTrue((ROOT / 'scripts/render-custom-themes.py').exists())
+        self.assertIn('theme-ocean.png', (ROOT / 'README.md').read_text())
+        self.assertIn('appearance-clock-face.png', (ROOT / 'README.md').read_text())
+        for key in ('flap-colors-enabled', 'flap-background-color', 'flap-digit-color'):
+            self.assertIn(key, (ROOT / 'native/app.py').read_text())
+            self.assertIn(key, (ROOT / 'extension/prefs.js').read_text())
+            self.assertIn(key, (ROOT / 'extension/schemas/org.gnome.shell.extensions.fliqlo-ubuntu.gschema.xml').read_text())
         for key in ('background-image-uris', 'background-selected-index',
                     'background-slideshow', 'background-slideshow-seconds'):
             self.assertIn(key, (ROOT / 'extension/schemas/org.gnome.shell.extensions.fliqlo-ubuntu.gschema.xml').read_text())

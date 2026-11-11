@@ -60,6 +60,22 @@ def check():
         assert config.get_strv('background-image-uris') == ['file:///tmp/b.png']
         window.clear_backdrop(None)
         assert not config.get_strv('background-image-uris')
+        assert {'flap-colors-enabled', 'flap-background-color',
+                'flap-digit-color'} <= control.keys()
+        control['flap-colors-enabled'].set_active(True)
+        assert config.get_boolean('flap-colors-enabled')
+        config.set_string('flap-background-color', '#173a56')
+        config.set_string('flap-digit-color', '#d5f1ff')
+        assert config.get_string('flap-digit-color') == '#d5f1ff'
+        window.reset_clock_colors(None)
+        assert not config.get_boolean('flap-colors-enabled')
+        config.set_boolean('flap-colors-enabled', True)
+        config.set_int('background-mode', 1)
+        config.set_strv('background-image-uris', ['file:///tmp/retained.png'])
+        window.reset_appearance(None)
+        assert config.get_int('background-mode') == 0
+        assert not config.get_boolean('flap-colors-enabled')
+        assert config.get_strv('background-image-uris') == ['file:///tmp/retained.png']
         config.set_int('brightness', 50)
         config.set_int('brightness', 100)
         window.preview(None)

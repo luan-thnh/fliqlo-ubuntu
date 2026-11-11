@@ -61,6 +61,32 @@ class ClockTests(unittest.TestCase):
             self.assertGreater(pixel[1], pixel[2])  # Green dominant
             self.assertGreater(pixel[1], pixel[0])
 
+    def test_custom_card_and_digit_colors(self):
+        base = dict(scale=100, brightness=100, background=True,
+                    font='DejaVu Sans')
+        def rendered(options):
+            surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 640, 360)
+            paint(cairo.Context(surface), 640, 360,
+                  ('9', '41', 'AM'), None, 1, dict(base, **options))
+            surface.flush()
+            return bytes(surface.get_data())
+        classic = rendered({})
+        ocean = rendered(dict(flap_colors_enabled=True,
+                             flap_background_color='#173a56',
+                             flap_digit_color='#d5f1ff'))
+        rose = rendered(dict(flap_colors_enabled=True,
+                            flap_background_color='#572c43',
+                            flap_digit_color='#ffdeee'))
+        assert classic != ocean != rose
+        # Sample away from the glyphs on the first flap: card really changes.
+        index = (80 * 640 + 66) * 4
+        assert ocean[index:index + 3] != rose[index:index + 3]
+        # An invalid color falls back safely instead of corrupting the image.
+        invalid = rendered(dict(flap_colors_enabled=True,
+                                flap_background_color='url(file://unsafe)',
+                                flap_digit_color='not-a-color'))
+        self.assertTrue(any(invalid))
+
     def test_cairo_animation(self):
         for progress in (0, .25, .5, .75, 1):
             surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 640, 360)

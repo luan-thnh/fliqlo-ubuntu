@@ -24,6 +24,7 @@ ASSETS = ROOT / "docs" / "assets"
 CASE_DARK_ONLY = os.environ.get("FLIQLO_SCREENSHOT_DARK") == "1"
 CASES = ([("appearance-dark.png", "appearance", True)] if CASE_DARK_ONLY else [
     ("appearance-light.png", "appearance", False),
+    ("appearance-clock-face.png", "appearance", False),
     ("appearance-background.png", "appearance", False),
     ("screensaver-light.png", "screensaver", False),
 ])
@@ -82,6 +83,14 @@ def main():
             filename, page, dark = CASES[index]
             theme.set_property("gtk-application-prefer-dark-theme", dark)
             theme.set_property("gtk-theme-name", "Adwaita-dark" if dark else "Adwaita")
+            if filename == 'appearance-clock-face.png':
+                config.set_boolean('flap-colors-enabled', True)
+                config.set_string('flap-background-color', '#173a56')
+                config.set_string('flap-digit-color', '#d5f1ff')
+                config.set_int('background-mode', 1)
+                config.set_string('background-color', '#071a2b')
+            else:
+                config.set_boolean('flap-colors-enabled', False)
             if filename == 'appearance-background.png':
                 config.set_strv('background-image-uris', sample_photos)
                 config.set_int('background-selected-index', 1)
@@ -97,6 +106,9 @@ def main():
                 if filename == 'appearance-background.png':
                     GLib.idle_add(lambda: adjustment.set_value(
                         max(0, adjustment.get_upper() - adjustment.get_page_size())) or False)
+                elif filename == 'appearance-clock-face.png':
+                    GLib.idle_add(lambda: adjustment.set_value(
+                        min(240, max(0, adjustment.get_upper() - adjustment.get_page_size()))) or False)
                 else:
                     adjustment.set_value(0)
             window.queue_draw()
