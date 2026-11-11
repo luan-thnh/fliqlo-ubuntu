@@ -8,12 +8,12 @@ An independent, open-source-ready implementation of a split-flap clock for Ubunt
 
 ## Clock formats
 
-Three **full-resolution** examples rendered by the same Cairo/Pango clock renderer used in the native application. Each example shows midnight using its respective format.
+Three **full-resolution** examples rendered by the same Cairo/Pango clock renderer used in the native application. All examples show the same time — **9:41 AM** — so only the formatting changes.
 
 | 12-hour (AM/PM) | 24-hour (0–23) | 24-hour (00–23) |
 | :---: | :---: | :---: |
-| <img src="docs/assets/clock-format-12h.png" alt="12-hour flip clock showing 12:00 AM" width="360"> | <img src="docs/assets/clock-format-24h-short.png" alt="24-hour flip clock showing 0:00" width="360"> | <img src="docs/assets/clock-format-24h-padded.png" alt="Padded 24-hour flip clock showing 00:00" width="360"> |
-| **12:00 AM** | **0:00** | **00:00** |
+| <img src="docs/assets/clock-format-12h.png" alt="12-hour flip clock showing 9:41 AM" width="360"> | <img src="docs/assets/clock-format-24h-short.png" alt="24-hour flip clock showing 9:41" width="360"> | <img src="docs/assets/clock-format-24h-padded.png" alt="Padded 24-hour flip clock showing 09:41" width="360"> |
+| **9:41 AM** | **9:41** | **09:41** |
 
 ## Settings
 

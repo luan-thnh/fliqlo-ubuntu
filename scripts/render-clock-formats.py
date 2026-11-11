@@ -17,7 +17,7 @@ from render import paint
 
 ASSETS = ROOT / "docs" / "assets"
 WIDTH, HEIGHT = 1920, 1080
-SAMPLE = datetime(2026, 1, 1, 0, 0)
+SAMPLE = datetime(2026, 1, 1, 9, 41)  # One consistent showcase time across all formats.
 OPTIONS = {
     "scale": 100,
     "brightness": 100,
@@ -25,9 +25,9 @@ OPTIONS = {
     "font": "DejaVu Sans",
 }
 CASES = [
-    ("clock-format-12h.png", 0, ("12", "00", "AM")),
-    ("clock-format-24h-short.png", 1, ("0", "00", "")),
-    ("clock-format-24h-padded.png", 2, ("00", "00", "")),
+    ("clock-format-12h.png", 0, ("9", "41", "AM")),
+    ("clock-format-24h-short.png", 1, ("9", "41", "")),
+    ("clock-format-24h-padded.png", 2, ("09", "41", "")),
 ]
 
 
