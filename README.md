@@ -2,7 +2,7 @@
 
 **A clean flip-clock screensaver for GNOME on Wayland.**
 
-**[🌐 Project website](https://luan-thnh.github.io/fliqlo-ubuntu/)** · **[Watch the 16-second product film](https://luan-thnh.github.io/fliqlo-ubuntu/#film)** · **[Download latest release](https://github.com/luan-thnh/fliqlo-ubuntu/releases)** · **[View screenshots](#settings)**
+**[🌐 Project website](https://luan-thnh.github.io/fliqlo-ubuntu/)** · **[Watch the 20-second product film](https://luan-thnh.github.io/fliqlo-ubuntu/#film)** · **[Download latest release](https://github.com/luan-thnh/fliqlo-ubuntu/releases)** · **[View screenshots](#settings)**
 
 
 An independent, open-source-ready implementation of a split-flap clock for Ubuntu. It uses a GNOME Shell extension for idle activation and an optional native GTK app for setup, font import, and fullscreen preview. No browser, Node.js, or background server is required at runtime.
@@ -13,7 +13,7 @@ An independent, open-source-ready implementation of a split-flap clock for Ubunt
 
 [![Fliqlo Ubuntu product film — flip-clock and customization showcase](docs/media/fliqlo-ubuntu-poster.jpg)](https://luan-thnh.github.io/fliqlo-ubuntu/#film)
 
-A **16-second cinematic overview** featuring real clock theme renders, native GTK settings, and original ambient audio. Watch it on the [landing page](https://luan-thnh.github.io/fliqlo-ubuntu/#film) or [view the MP4](docs/media/fliqlo-ubuntu-teaser.mp4). The deterministic renderer lives at [`scripts/render-promo-video.py`](scripts/render-promo-video.py).
+A **20-second cinematic overview** featuring original 1080p clock animations, a stylized Settings illustration, color themes, and ambient audio. Watch it on the [landing page](https://luan-thnh.github.io/fliqlo-ubuntu/#film) or [view the MP4](docs/media/fliqlo-ubuntu-teaser.mp4). The deterministic renderer lives at [`scripts/render-promo-video.py`](scripts/render-promo-video.py).
 
 ## Clock formats
 

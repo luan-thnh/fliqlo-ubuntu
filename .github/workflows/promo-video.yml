@@ -36,6 +36,7 @@ jobs:
         run: |
           test -s docs/media/fliqlo-ubuntu-teaser.mp4
           test -s docs/media/fliqlo-ubuntu-poster.jpg
+          test -s docs/media/fliqlo-ubuntu-storyboard.jpg
           python - <<'PY'
           import imageio_ffmpeg, subprocess
           path='docs/media/fliqlo-ubuntu-teaser.mp4'
@@ -45,15 +46,15 @@ jobs:
           report=result.stderr
           assert 'Video: h264' in report, report
           assert 'Audio: aac' in report, report
-          assert '1280x720' in report, report
-          assert 'Duration: 00:00:16' in report, report
-          print('Verified 16-second H.264/AAC 720p video')
+          assert '1920x1080' in report, report
+          assert 'Duration: 00:00:20' in report, report
+          print('Verified 20-second H.264/AAC 1080p video')
           PY
       - name: Commit generated media
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add docs/media/fliqlo-ubuntu-teaser.mp4 docs/media/fliqlo-ubuntu-poster.jpg
+          git add docs/media/fliqlo-ubuntu-teaser.mp4 docs/media/fliqlo-ubuntu-poster.jpg docs/media/fliqlo-ubuntu-storyboard.jpg
           if ! git diff --cached --quiet; then
             git commit -m 'assets(video): render cinematic Fliqlo Ubuntu product film'
             git push origin HEAD:main

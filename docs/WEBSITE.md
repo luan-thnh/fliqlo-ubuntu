@@ -39,9 +39,9 @@ This repository has been observed using the branch publishing source **main/docs
 
 ## Cinematic product film
 
-The film source is `scripts/render-promo-video.py`. It creates deterministic, 16-second H.264/AAC media and a poster from the **real project theme screenshots**. Its music/sound design is generated in code and original, and it uses no proprietary Fliqlo/HeyGen assets.
+The film source is `scripts/render-promo-video.py`. The six-scene storyboard is `docs/media/fliqlo-ubuntu-storyboard.jpg`. It creates deterministic, 20-second 1080p H.264/AAC media and a poster from original vector illustrations of the project's clock, color themes, backgrounds and settings. Its music/sound design is generated in code and original, and it uses no proprietary Fliqlo/HeyGen assets.
 
-- Compressed video: `docs/media/fliqlo-ubuntu-teaser.mp4` (16 sec, 1280×720, 24 fps).
+- Compressed video: `docs/media/fliqlo-ubuntu-teaser.mp4` (20 sec, 1920×1080, 24 fps).
 - Poster: `docs/media/fliqlo-ubuntu-poster.jpg`.
 - Automation: `.github/workflows/promo-video.yml` rebuilds and commits on a renderer source change.
 
@@ -55,3 +55,5 @@ python3 scripts/build-website.py --sync-docs
 The landing page uses native HTML5 video, defaults to **muted**, pauses when offscreen, has play/sound/fullscreen controls, honors reduced motion, and includes a poster fallback. GitHub Pages serves static MP4 directly. No paid video API or client-side rendering dependency.
 
 **Video QA:** all clock renders and GTK screenshots are aspect-preserving crops, never stretched; the encoder is provided by local FFmpeg or a pinned imageio-ffmpeg fallback. The GitHub Pages publish source includes the regenerated MP4 and poster.
+
+**Film v2 QA:** Each scene uses a distinct layout zone; the renderer validates headline widths. Transitions fade through dark rather than cross-fading captions, eliminating overlapping text. Cards are drawn at 1080p resolution as vectors (not stretched screenshots). The Settings scene is a product-style illustration, not a literal GTK screenshot. Build checks verify H.264/AAC, 1920×1080 resolution, a 20-second duration and generated storyboard.
