@@ -31,7 +31,7 @@ The extension ZIP is root-layout (`metadata.json`, `extension.js`, `prefs.js`, `
 
 ## 4. GitHub Releases — automated pre-release
 
-- On a successful `main` build, the CI release job publishes a pre-release for the version in `VERSION` (currently `v0.4.2`), including `.deb`, standalone extension ZIP, and SHA256 checksum files.
+- On a successful `main` build, the CI release job publishes a pre-release for the version in `VERSION` (currently `v0.4.3`), including `.deb`, standalone extension ZIP, and SHA256 checksum files.
 - The release job skips re-uploading existing tags. After successfully publishing the current version it deletes older versioned GitHub Releases and their tags so only the latest project release remains. Bump `VERSION` for each subsequent release; verify the generated assets and release page.
 - Do not commit generated `.deb` packages to the source repository; attach them to GitHub Releases.
 - Record release notes, screenshots of the *actual new UI*, tested Ubuntu/GNOME versions, known limitations, and uninstall steps.

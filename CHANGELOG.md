@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.3 — documentation sync release
+
+- Updated all three clock-format preview images to the same sample time: **9:41 AM / 9:41 / 09:41**.
+- Regenerated the 1920×1080 renderer examples and synchronized the release tag with the current README.
+- No runtime application behavior changed from v0.4.2.
+
+
 ## 0.4.2 — release candidate
 
 - Replaced the blurry, window-captured fullscreen README image with three crisp 1920×1080 renders of the real Cairo/Pango clock for 12-hour, 24-hour and zero-padded 24-hour formats.

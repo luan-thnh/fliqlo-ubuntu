@@ -4,7 +4,7 @@
 
 An independent, open-source-ready implementation of a split-flap clock for Ubuntu. It uses a GNOME Shell extension for idle activation and an optional native GTK app for setup, font import, and fullscreen preview. No browser, Node.js, or background server is required at runtime.
 
-> **Status:** Pre-release 0.4.2 · GNOME Shell **50** / Ubuntu **26.04** target · MIT-licensed original code · maintainer review and real-desktop testing required before GNOME Extensions submission. Not affiliated with Fliqlo or its creator.
+> **Status:** Pre-release 0.4.3 · GNOME Shell **50** / Ubuntu **26.04** target · MIT-licensed original code · maintainer review and real-desktop testing required before GNOME Extensions submission. Not affiliated with Fliqlo or its creator.
 
 ## Clock formats
 
@@ -44,13 +44,13 @@ Requires GNOME Shell 50 and `glib-compile-schemas` to build the archive:
 ```bash
 sudo apt install libglib2.0-bin zip
 ./scripts/build-extension.sh
-# Archive in dist/fliqlo-ubuntu@luan-thnh-v0.4.2.zip
+# Archive in dist/fliqlo-ubuntu@luan-thnh-v0.4.3.zip
 ```
 
 Install the generated archive with the GNOME Extensions app, or use the CLI:
 
 ```bash
-gnome-extensions install --force dist/fliqlo-ubuntu@luan-thnh-v0.4.2.zip
+gnome-extensions install --force dist/fliqlo-ubuntu@luan-thnh-v0.4.3.zip
 ```
 
 **Log out and back in** on Wayland, then enable the extension in GNOME Extensions. Open **Preferences** to configure it. The standalone app is not required for the screensaver itself.
@@ -60,7 +60,7 @@ gnome-extensions install --force dist/fliqlo-ubuntu@luan-thnh-v0.4.2.zip
 ```bash
 sudo apt install dpkg-dev libglib2.0-bin
 ./scripts/build-deb.sh
-sudo apt install ./dist/fliqlo-ubuntu_0.4.2_all.deb
+sudo apt install ./dist/fliqlo-ubuntu_0.4.3_all.deb
 ```
 
 Log out and back in, open **Fliqlo Ubuntu**, then use **Screensaver → Enable**. Avoid installing both a user-level extension archive and a system-level `.deb` for the same UUID: GNOME may use the user-installed copy instead of the package copy.
@@ -90,7 +90,7 @@ node tests/extension-lifecycle.mjs
 
 ## Compatibility and limitations
 
-The existing rendering code and animation were evaluated on a GNOME 50.1 / Wayland headless environment in the earlier release. Version 0.4.2 changes settings and packaging; it still needs **manual testing** on an actual GNOME 50 desktop, including GPU, HiDPI, multimonitor, extension Preferences, and suspend/lock behavior. It does not replace GNOME's security-sensitive lock screen or inhibit display sleep.
+The existing rendering code and animation were evaluated on a GNOME 50.1 / Wayland headless environment in the earlier release. Version 0.4.3 changes settings and packaging; it still needs **manual testing** on an actual GNOME 50 desktop, including GPU, HiDPI, multimonitor, extension Preferences, and suspend/lock behavior. It does not replace GNOME's security-sensitive lock screen or inhibit display sleep.
 
 This project is an **independent reimplementation**. It does not ship proprietary Fliqlo binaries, fonts, HTML, or media; see [Third-party acknowledgements](THIRD_PARTY.md). The independently written source is distributed under the [MIT License](LICENSE). Original Fliqlo assets and other third-party material are not included in that grant. Review provenance and contributor permissions before any wider public distribution.
 
