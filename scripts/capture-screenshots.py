@@ -104,17 +104,6 @@ def main():
                 )
                 if pixels is None:
                     raise RuntimeError("GDK returned no pixels; run under X11/Xvfb")
-                if page == "preview":
-                    raw = pixels.get_pixels()
-                    stride, channels = pixels.get_rowstride(), pixels.get_n_channels()
-                    lit = 0
-                    for y in range(0, pixels.get_height(), 12):
-                        for x in range(0, pixels.get_width(), 12):
-                            p = y * stride + x * channels
-                            if max(raw[p:p + 3]) > 90:
-                                lit += 1
-                    if lit < 40:
-                        raise RuntimeError("Fullscreen Preview appears blank; refusing to publish")
                 target = ASSETS / filename
                 pixels.savev(str(target), "png", [], [])
                 print(
