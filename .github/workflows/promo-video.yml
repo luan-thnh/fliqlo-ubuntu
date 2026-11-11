@@ -12,7 +12,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: fliqlo-promo
+  group: fliqlo-promo-pinned-python
   cancel-in-progress: true
 
 jobs:
