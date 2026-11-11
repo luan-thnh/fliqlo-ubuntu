@@ -4,7 +4,7 @@
 HTML-timeline-inspired frames, Pillow + FFmpeg. No proprietary Hyperframes assets,
 no API calls, no external footage, no third-party music or packaged fonts.
 """
-import subprocess, wave
+import subprocess, wave, shutil
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 import numpy as np
@@ -140,12 +140,20 @@ def sound(path):
         wav.setnchannels(1);wav.setsampwidth(2);wav.setframerate(fs)
         wav.writeframes(np.int16(np.clip(audio,-1,1)*32767).tobytes())
 
+def ffmpeg_binary():
+    """Use system FFmpeg locally, or imageio-ffmpeg's bundled binary in CI."""
+    existing = shutil.which('ffmpeg')
+    if existing:
+        return existing
+    import imageio_ffmpeg
+    return imageio_ffmpeg.get_ffmpeg_exe()
+
 def main():
     OUT.mkdir(parents=True,exist_ok=True)
     poster=OUT/'fliqlo-ubuntu-poster.jpg';render_at(4.0).save(poster,quality=91,optimize=True)
     silent=OUT/'video.tmp.mp4';audio=OUT/'sound.tmp.wav'
     sound(audio)
-    ffmpeg=['ffmpeg','-hide_banner','-loglevel','error','-y',
+    ffmpeg=[ffmpeg_binary(),'-hide_banner','-loglevel','error','-y',
        '-f','rawvideo','-vcodec','rawvideo','-s',f'{W}x{H}','-pix_fmt','rgb24',
        '-r',str(FPS),'-i','-','-an','-c:v','libx264','-preset','veryfast',
        '-crf','21','-pix_fmt','yuv420p','-movflags','+faststart',str(silent)]
@@ -156,7 +164,7 @@ def main():
     finally:proc.stdin.close()
     if proc.wait():raise RuntimeError('Failed to encode video')
     final=OUT/'fliqlo-ubuntu-teaser.mp4'
-    subprocess.run(['ffmpeg','-hide_banner','-loglevel','error','-y','-i',str(silent),'-i',str(audio),
+    subprocess.run([ffmpeg_binary(),'-hide_banner','-loglevel','error','-y','-i',str(silent),'-i',str(audio),
         '-c:v','copy','-c:a','aac','-b:a','112k','-shortest','-movflags','+faststart',str(final)],check=True)
     silent.unlink();audio.unlink()
     assert final.stat().st_size>100_000

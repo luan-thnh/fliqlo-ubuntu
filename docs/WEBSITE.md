@@ -45,7 +45,7 @@ The film source is `scripts/render-promo-video.py`. It creates deterministic, 16
 - Poster: `docs/media/fliqlo-ubuntu-poster.jpg`.
 - Automation: `.github/workflows/promo-video.yml` rebuilds and commits on a renderer source change.
 
-Run locally (Ubuntu with ffmpeg, Pillow, NumPy):
+Run locally (Ubuntu with FFmpeg, Pillow, NumPy, or install `imageio-ffmpeg` as a bundled-FFmpeg fallback):
 
 ```bash
 /usr/bin/python3 scripts/render-promo-video.py
