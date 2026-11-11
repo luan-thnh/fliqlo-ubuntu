@@ -210,3 +210,25 @@ h1,h2,h3{font-family:'Manrope',var(--font);letter-spacing:-.065em}
 @media(prefers-reduced-motion:reduce){
  *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}
 }
+/* Cinematic product film — native controls, no heavy video player dependencies. */
+.film-section{padding-top:15px;padding-bottom:118px}
+.film-heading{display:flex;justify-content:space-between;align-items:end;gap:30px;margin-bottom:27px}
+.film-heading h2{font-size:clamp(31px,3.7vw,51px);line-height:1.2;margin:15px 0 10px}
+.film-heading h2 em{font-style:normal;color:#b9c7f6}
+.film-heading>div>p:last-child{font-size:13px;color:#9ca6ba;line-height:1.65}
+.film-download{padding:12px 17px;border:1px solid #343b4d;border-radius:11px;color:#dde3f5;font-size:12px;font-weight:700;white-space:nowrap}
+.film-download:hover{border-color:#93a8e8}
+.film-frame{position:relative;aspect-ratio:16/9;background:linear-gradient(135deg,#171d2d,#080b10);border:1px solid #454d61;overflow:hidden;border-radius:22px;box-shadow:0 35px 90px rgba(1,2,7,.5),0 0 0 1px rgba(255,255,255,.045) inset;isolation:isolate}
+.product-film{display:block;width:100%;height:100%;object-fit:cover;background:#0a0c13}
+.film-frame::after{content:'';position:absolute;pointer-events:none;inset:auto 0 0;height:150px;background:linear-gradient(transparent,rgba(3,5,9,.78))}
+.film-label{position:absolute;top:19px;left:22px;display:flex;align-items:center;gap:11px;z-index:2;font-size:10px;font-weight:800;letter-spacing:.12em;color:#d5ddef;text-shadow:0 1px 6px #111}
+.film-label-time{font-weight:600;opacity:.6;margin-left:7px}
+.film-red-dot{width:6px;height:6px;border-radius:50%;background:#e298a2;box-shadow:0 0 0 5px rgba(226,152,162,.1)}
+.film-controls{position:absolute;display:flex;align-items:center;gap:9px;bottom:20px;left:22px;z-index:3}
+.film-controls button{border:1px solid rgba(225,231,247,.21);background:rgba(26,32,45,.83);border-radius:100px;padding:11px 15px;display:inline-flex;align-items:center;gap:9px;color:#e6ebfa;font-size:11px;font-weight:800;backdrop-filter:blur(10px)}
+.film-controls button:hover{background:#323b52;border-color:#acbbec}
+.film-controls button span:first-child{font-size:14px}
+.film-caption{font-size:11px;line-height:1.8;color:#8993a6;margin-top:19px}
+.film-caption span{color:#bdc8e2;font-weight:700}
+@media(max-width:680px){.film-section{padding-top:0;padding-bottom:80px}.film-heading{align-items:start;display:block}.film-heading h2{font-size:32px}.film-download{display:inline-block;margin-top:16px}.film-frame{border-radius:13px}.film-label{top:12px;left:11px;font-size:8px}.film-label-time{display:none}.film-controls{bottom:10px;left:9px;gap:5px}.film-controls button{padding:8px 10px;font-size:10px}.film-controls button span:first-child{font-size:12px}.film-controls button#film-fullscreen{display:none}}
+@media(prefers-reduced-motion:reduce){.film-frame{scroll-behavior:auto}}

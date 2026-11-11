@@ -2,7 +2,7 @@
 
 **A clean flip-clock screensaver for GNOME on Wayland.**
 
-**[🌐 Project website](https://luan-thnh.github.io/fliqlo-ubuntu/)** · **[Download latest release](https://github.com/luan-thnh/fliqlo-ubuntu/releases)** · **[View screenshots](#settings)**
+**[🌐 Project website](https://luan-thnh.github.io/fliqlo-ubuntu/)** · **[Watch the 16-second product film](https://luan-thnh.github.io/fliqlo-ubuntu/#film)** · **[Download latest release](https://github.com/luan-thnh/fliqlo-ubuntu/releases)** · **[View screenshots](#settings)**
 
 
 An independent, open-source-ready implementation of a split-flap clock for Ubuntu. It uses a GNOME Shell extension for idle activation and an optional native GTK app for setup, font import, and fullscreen preview. No browser, Node.js, or background server is required at runtime.

@@ -26,6 +26,7 @@
         <span>fliqlo<span class="brand-sub">/ ubuntu</span></span>
       </a>
       <div class="nav-links">
+        <a href="#film">Film</a>
         <a href="#features">Features</a>
         <a href="#customize">Customize</a>
         <a href="#screenshots">Screenshots</a>
@@ -83,6 +84,30 @@
         </div>
         <div class="floating-note"><span class="tiny-sparkle">✦</span><span>Designed to disappear.<br><strong>Made to be noticed.</strong></span></div>
       </div>
+    </section>
+
+    <section class="film-section wrap" id="film" aria-labelledby="film-title">
+      <div class="film-heading">
+        <div>
+          <p class="overline">THE PRODUCT FILM / 00:16</p>
+          <h2 id="film-title">A little film about <em>time.</em></h2>
+          <p>16 seconds inside a quieter, more personal desktop.</p>
+        </div>
+        <a href="./media/fliqlo-ubuntu-teaser.mp4" download class="film-download">Download film <span aria-hidden="true">↗</span></a>
+      </div>
+      <div class="film-frame" id="film-frame">
+        <video id="product-film" class="product-film" muted loop playsinline preload="none" poster="./media/fliqlo-ubuntu-poster.jpg" width="1280" height="720" aria-label="Fliqlo Ubuntu cinematic product film showing classic flip cards, customizable colors and native GTK settings">
+          <source src="./media/fliqlo-ubuntu-teaser.mp4" type="video/mp4">
+          <p>Your browser does not support video. <a href="./media/fliqlo-ubuntu-teaser.mp4">Download the product film</a>.</p>
+        </video>
+        <div class="film-label" aria-hidden="true"><span class="film-red-dot"></span> A FLIQLO UBUNTU FILM <span class="film-label-time">16 SEC · 16:9</span></div>
+        <div class="film-controls" role="group" aria-label="Video controls">
+          <button id="film-play" type="button" aria-label="Play film" aria-pressed="false"><span id="film-play-symbol" aria-hidden="true">▶</span><span id="film-play-label">Play film</span></button>
+          <button id="film-sound" type="button" aria-label="Unmute film" aria-pressed="false"><span id="film-sound-symbol" aria-hidden="true">♪</span><span id="film-sound-label">Sound off</span></button>
+          <button id="film-fullscreen" type="button" aria-label="Play video fullscreen">Expand <span aria-hidden="true">⤢</span></button>
+        </div>
+      </div>
+      <p class="film-caption"><span>Made with the actual project visuals.</span> Rendered at 24 fps using a reproducible, time-based animation pipeline. Autoplay is muted and pauses when off-screen.</p>
     </section>
 
     <section class="intro-ribbon wrap" aria-label="Project highlights">

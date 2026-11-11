@@ -99,6 +99,75 @@
     });
   });
 
+  // Lightweight native-video controls: honor reduced motion and pause offscreen.
+  const film = document.querySelector('#product-film');
+  const playButton = document.querySelector('#film-play');
+  const playLabel = document.querySelector('#film-play-label');
+  const playSymbol = document.querySelector('#film-play-symbol');
+  const soundButton = document.querySelector('#film-sound');
+  const soundLabel = document.querySelector('#film-sound-label');
+  const soundSymbol = document.querySelector('#film-sound-symbol');
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let filmInView = false;
+  let userPausedFilm = false;
+
+  function syncFilmUI() {
+    const paused = film.paused;
+    playLabel.textContent = paused ? 'Play film' : 'Pause';
+    playSymbol.textContent = paused ? '▶' : 'Ⅱ';
+    playButton.setAttribute('aria-label', paused ? 'Play film' : 'Pause film');
+    playButton.setAttribute('aria-pressed', String(!paused));
+    soundLabel.textContent = film.muted ? 'Sound off' : 'Sound on';
+    soundSymbol.textContent = film.muted ? '♪' : '♫';
+    soundButton.setAttribute('aria-label', film.muted ? 'Unmute film' : 'Mute film');
+    soundButton.setAttribute('aria-pressed', String(!film.muted));
+  }
+
+  async function tryFilmPlay() {
+    try { await film.play(); } catch (_) { /* browser autoplay policy; keep poster */ }
+    syncFilmUI();
+  }
+
+  playButton.addEventListener('click', () => {
+    if (film.paused) {
+      userPausedFilm = false;
+      tryFilmPlay();
+    } else {
+      userPausedFilm = true;
+      film.pause();
+      syncFilmUI();
+    }
+  });
+
+  soundButton.addEventListener('click', () => {
+    film.muted = !film.muted;
+    if (film.paused) {userPausedFilm = false; tryFilmPlay();}
+    syncFilmUI();
+  });
+
+  document.querySelector('#film-fullscreen').addEventListener('click', () => {
+    if (film.requestFullscreen) film.requestFullscreen().catch(() => {});
+  });
+  film.addEventListener('play', syncFilmUI);
+  film.addEventListener('pause', syncFilmUI);
+  film.addEventListener('volumechange', syncFilmUI);
+
+  if ('IntersectionObserver' in window) {
+    const observer = new IntersectionObserver(entries => {
+      filmInView = entries[0].isIntersecting;
+      if (!filmInView) film.pause();
+      else if (!reduceMotion.matches && !userPausedFilm && document.visibilityState === 'visible') tryFilmPlay();
+      syncFilmUI();
+    }, {threshold: 0.2});
+    observer.observe(document.querySelector('#film-frame'));
+  }
+  if (reduceMotion.matches) film.pause();
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') film.pause();
+    else if (filmInView && !reduceMotion.matches && !userPausedFilm) tryFilmPlay();
+  });
+  syncFilmUI();
+
   let toastTimer;
   function toast(text) {
     const el = document.querySelector('#toast');

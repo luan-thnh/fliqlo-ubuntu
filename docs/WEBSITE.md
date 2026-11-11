@@ -35,3 +35,21 @@ The builder injects the current release from `VERSION`, validates internal asset
 ## First-time GitHub setup
 
 This repository has been observed using the branch publishing source **main/docs**. If Pages is disabled later, open **Settings → Pages**, select **Deploy from a branch**, branch **main**, folder **/docs**, and save. Do not select the GitHub Actions source unless also replacing the current branch deployment configuration.
+
+
+## Cinematic product film
+
+The film source is `scripts/render-promo-video.py`. It creates deterministic, 16-second H.264/AAC media and a poster from the **real project theme screenshots**. Its music/sound design is generated in code and original, and it uses no proprietary Fliqlo/HeyGen assets.
+
+- Compressed video: `docs/media/fliqlo-ubuntu-teaser.mp4` (16 sec, 1280×720, 24 fps).
+- Poster: `docs/media/fliqlo-ubuntu-poster.jpg`.
+- Automation: `.github/workflows/promo-video.yml` rebuilds and commits on a renderer source change.
+
+Run locally (Ubuntu with ffmpeg, Pillow, NumPy):
+
+```bash
+/usr/bin/python3 scripts/render-promo-video.py
+python3 scripts/build-website.py --sync-docs
+```
+
+The landing page uses native HTML5 video, defaults to **muted**, pauses when offscreen, has play/sound/fullscreen controls, honors reduced motion, and includes a poster fallback. GitHub Pages serves static MP4 directly. No paid video API or client-side rendering dependency.

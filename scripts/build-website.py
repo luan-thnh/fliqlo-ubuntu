@@ -66,6 +66,12 @@ def build():
     # project and checked into docs/assets.
     for image in IMAGES.glob("*.png"):
         shutil.copy2(image, TARGET / "assets" / image.name)
+    media = ROOT / "docs" / "media"
+    if media.is_dir():
+        (TARGET / "media").mkdir(exist_ok=True)
+        for name in ("fliqlo-ubuntu-teaser.mp4", "fliqlo-ubuntu-poster.jpg"):
+            if (media / name).is_file():
+                shutil.copy2(media / name, TARGET / "media" / name)
     (TARGET / ".nojekyll").touch()
 
     html = (TARGET / "index.html").read_text(encoding="utf-8")
