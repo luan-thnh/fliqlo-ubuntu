@@ -4,6 +4,7 @@
 This runs the application's widgets and uses GDK window capture.
 """
 from pathlib import Path
+import os
 import subprocess
 import sys
 
@@ -17,12 +18,12 @@ from gi.repository import Gdk, Gio, GLib, Gtk
 from app import Preferences, settings
 
 ASSETS = ROOT / "docs" / "assets"
-CASES = [
+CASE_DARK_ONLY = os.environ.get("FLIQLO_SCREENSHOT_DARK") == "1"
+CASES = ([("appearance-dark.png", "appearance", True)] if CASE_DARK_ONLY else [
     ("appearance-light.png", "appearance", False),
     ("screensaver-light.png", "screensaver", False),
-    ("appearance-dark.png", "appearance", True),
     ("preview-fullscreen.png", "preview", False),
-]
+])
 
 def update_readme():
     readme = ROOT / "README.md"
@@ -63,7 +64,7 @@ def main():
 
     def activate(app):
         theme = Gtk.Settings.get_default()
-        theme.set_property("gtk-application-prefer-dark-theme", False)
+        theme.set_property("gtk-application-prefer-dark-theme", CASE_DARK_ONLY)
         window = Preferences(app, settings())
         window.set_size_request(680, 760)
         window.resize(680, 760)
@@ -103,6 +104,17 @@ def main():
                 )
                 if pixels is None:
                     raise RuntimeError("GDK returned no pixels; run under X11/Xvfb")
+                if page == "preview":
+                    raw = pixels.get_pixels()
+                    stride, channels = pixels.get_rowstride(), pixels.get_n_channels()
+                    lit = 0
+                    for y in range(0, pixels.get_height(), 12):
+                        for x in range(0, pixels.get_width(), 12):
+                            p = y * stride + x * channels
+                            if max(raw[p:p + 3]) > 90:
+                                lit += 1
+                    if lit < 40:
+                        raise RuntimeError("Fullscreen Preview appears blank; refusing to publish")
                 target = ASSETS / filename
                 pixels.savev(str(target), "png", [], [])
                 print(
